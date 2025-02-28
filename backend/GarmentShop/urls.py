@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/userrole/',include('Userdetails.urls')),
     path('api/garmentmodule/',include('Garmentmodules.urls')),
     path('api/salesreturn/',include('Salesreturn.urls')),
+    path('api/salestarget/',include('Salestarget.urls')),
     
 
 ]

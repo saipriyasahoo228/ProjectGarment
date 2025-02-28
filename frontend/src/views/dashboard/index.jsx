@@ -1,8 +1,6 @@
-
-
-
 // import React, { useEffect, useState } from 'react';
 // import { Row, Col, Card, ProgressBar, Modal, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
+// import { FaChartLine, FaCalendarDay, FaCalendarAlt } from 'react-icons/fa';
 // import jsPDF from 'jspdf';
 // import autoTable from 'jspdf-autotable';
 // import api from "../../api";
@@ -24,7 +22,7 @@
 //     yearly: 700,
 //   };
 
-//    useEffect(() => {
+//      useEffect(() => {
 //     const fetchSalesData = async () => {
 //       try {
 //         const responses = await Promise.all(
@@ -86,6 +84,7 @@
 
 //     fetchSalesData();
 //   }, []);
+
 //   const handleProgressClick = (data) => {
 //     setModalData(data);
 //     setShowModal(true);
@@ -104,7 +103,7 @@
 //       body: modalData.all_sales.map(sale => [
 //         modalData.key === 'daily' ? sale.date : modalData.key === 'monthly' ? sale.month : sale.year,
 //         sale.sale_type,
-//         `₹${parseFloat(sale.total_amount).toLocaleString('en-IN')}`,
+//         `${parseFloat(sale.total_amount).toLocaleString('en-IN')}`,
 //         sale.total_units
 //       ])
 //     });
@@ -117,12 +116,15 @@
 //         {salesData.map((data, index) => {
 //           const progress = Math.min((data.total_amount / targets[data.key]) * 100, 100);
 //           const progressBarVariant = progress < 50 ? 'danger' : progress < 75 ? 'warning' : progress < 100 ? 'primary' : 'success';
+//           const iconColor = data.key === 'daily' ? '#1976D2' : data.key === 'monthly' ? '#388E3C' : '#FBC02D';
+//           const icon = data.key === 'daily' ? <FaCalendarDay size={24} color={iconColor} /> : data.key === 'monthly' ? <FaCalendarAlt size={24} color={iconColor} /> : <FaChartLine size={24} color={iconColor} />;
+//           const cardBg = data.key === 'daily' ? 'linear-gradient(to right, #E3F2FD, #BBDEFB)' : data.key === 'monthly' ? 'linear-gradient(to right, #E8F5E9, #C8E6C9)' : 'linear-gradient(to right, #FFF9C4, #FFF59D)';
 //           return (
 //             <Col key={index} xl={6} xxl={4}>
-//               <Card>
+//               <Card style={{ background: cardBg, border: 'none', borderRadius: '10px', padding: '10px' }}>
 //                 <Card.Body>
-//                   <h5>{data.title}</h5>
-//                   <p>{data.key === 'daily' ? `Date: ${data.date}` : data.key === 'monthly' ? `Month: ${data.date}` : `Year: ${data.date}`}</p>
+//                   <h5>{icon} {data.title}</h5>
+//                   <p>{data.key === 'daily' ? `Date: ${data.date}` : data.key === 'monthly' ? `Month: ${data.month}` : `Year: ${data.year}`}</p>
 //                   <p>Total Amount: <strong>₹{data.total_amount.toLocaleString('en-IN')}</strong></p>
 //                   <p>Total Units: <strong>{data.total_units}</strong></p>
 //                   <OverlayTrigger placement="top" overlay={<Tooltip>Click to view details</Tooltip>}>
@@ -175,6 +177,11 @@
 // export default DashDefault;
 
 
+
+
+
+
+
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, ProgressBar, Modal, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FaChartLine, FaCalendarDay, FaCalendarAlt } from 'react-icons/fa';
@@ -190,16 +197,25 @@ const apiEndpoints = [
 
 const DashDefault = () => {
   const [salesData, setSalesData] = useState([]);
+  const [targets, setTargets] = useState({ daily: 0, monthly: 0, yearly: 0 });
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState(null);
 
-  const targets = {
-    daily: 500,
-    monthly: 1000,
-    yearly: 700,
-  };
+  // Fetch dynamic targets from the backend API
+  useEffect(() => {
+    const fetchTargets = async () => {
+      try {
+        const res = await api.get('/api/salestarget/salestargets/');
+        setTargets(res.data);
+      } catch (error) {
+        console.error('Error fetching sales targets:', error);
+      }
+    };
 
-     useEffect(() => {
+    fetchTargets();
+  }, []);
+
+  useEffect(() => {
     const fetchSalesData = async () => {
       try {
         const responses = await Promise.all(
@@ -291,7 +307,9 @@ const DashDefault = () => {
     <React.Fragment>
       <Row>
         {salesData.map((data, index) => {
-          const progress = Math.min((data.total_amount / targets[data.key]) * 100, 100);
+          // Use dynamically fetched target for progress calculations.
+          const targetValue = targets[data.key] || 0;
+          const progress = targetValue ? Math.min((data.total_amount / targetValue) * 100, 100) : 0;
           const progressBarVariant = progress < 50 ? 'danger' : progress < 75 ? 'warning' : progress < 100 ? 'primary' : 'success';
           const iconColor = data.key === 'daily' ? '#1976D2' : data.key === 'monthly' ? '#388E3C' : '#FBC02D';
           const icon = data.key === 'daily' ? <FaCalendarDay size={24} color={iconColor} /> : data.key === 'monthly' ? <FaCalendarAlt size={24} color={iconColor} /> : <FaChartLine size={24} color={iconColor} />;
@@ -304,9 +322,13 @@ const DashDefault = () => {
                   <p>{data.key === 'daily' ? `Date: ${data.date}` : data.key === 'monthly' ? `Month: ${data.month}` : `Year: ${data.year}`}</p>
                   <p>Total Amount: <strong>₹{data.total_amount.toLocaleString('en-IN')}</strong></p>
                   <p>Total Units: <strong>{data.total_units}</strong></p>
-                  <OverlayTrigger placement="top" overlay={<Tooltip>Click to view details</Tooltip>}>
-                    <ProgressBar now={progress} label={`${progress.toFixed(1)}%`} variant={progressBarVariant} style={{ cursor: 'pointer' }} onClick={() => handleProgressClick(data)} />
-                  </OverlayTrigger>
+                  {targetValue ? (
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Click to view details</Tooltip>}>
+                      <ProgressBar now={progress} label={`${progress.toFixed(1)}%`} variant={progressBarVariant} style={{ cursor: 'pointer' }} onClick={() => handleProgressClick(data)} />
+                    </OverlayTrigger>
+                  ) : (
+                    <p>Loading targets...</p>
+                  )}
                 </Card.Body>
               </Card>
             </Col>

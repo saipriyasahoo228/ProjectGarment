@@ -176,6 +176,12 @@ const routes = [
         path: '/setting/module',
         element: lazy(() => import('./views/settingsmodule/Userrolesetting'))
       },
+      {
+        exact: 'true',
+        path: '/basic/financialtargetdetails',
+        element: lazy(() => import('./views/ui-elements/basic/SalesTargetSettings'))
+      },
+      
       
       
       {

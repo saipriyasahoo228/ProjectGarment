@@ -491,7 +491,7 @@ const getFirstAccessibleModuleUrl = (modules, isAdmin) => {
       }
     }
   }
-  return "/garmentproject/#/app/dashboard/default";
+  return " ";
 };
 
 

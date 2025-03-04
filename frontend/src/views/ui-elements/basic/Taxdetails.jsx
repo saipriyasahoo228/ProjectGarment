@@ -27,22 +27,38 @@ export default function TaxDetails() {
   const taxPercentageRef = useRef(null);
   const descriptionRef = useRef(null);
 
-  useEffect(() => {
+//   useEffect(() => {
  
-  const fetchTaxList = async () => {
-    try {
-      setLoading({ ...loading, fetch: true });
-      const response = await api.get('/api/user/taxes/'); // Replace with your API endpoint
-      setTaxList(response.data.data);
-      //alert(response.data.message);
-    } catch (error) {
-      console.error("Error fetching tax list", error);
-    } finally {
-      setLoading({ ...loading, fetch: false });
-    }
-  };
+//   const fetchTaxList = async () => {
+//     try {
+//       setLoading({ ...loading, fetch: true });
+//       const response = await api.get('/api/user/taxes/'); // Replace with your API endpoint
+//       setTaxList(response.data.data);
+//       //alert(response.data.message);
+//     } catch (error) {
+//       console.error("Error fetching tax list", error);
+//     } finally {
+//       setLoading({ ...loading, fetch: false });
+//     }
+//   };
 
-  fetchTaxList(); // Fetch tax details when the component mounts
+//   fetchTaxList(); // Fetch tax details when the component mounts
+// }, []);
+const fetchTaxList = async () => {
+  try {
+      setLoading((prev) => ({ ...prev, fetch: true }));
+      const response = await api.get("/api/user/taxes/"); // Replace with your API endpoint
+      setTaxList(response.data.data);
+  } catch (error) {
+      console.error("Error fetching tax list", error);
+  } finally {
+      setLoading((prev) => ({ ...prev, fetch: false }));
+  }
+};
+
+// Call fetchTaxList when the component mounts
+useEffect(() => {
+  fetchTaxList();
 }, []);
 
 
@@ -69,49 +85,120 @@ export default function TaxDetails() {
     setOpen(false); // Close the dialog when "Cancel" button is clicked
   };
 
+  // const handleAddOrUpdate = async (e) => {
+  //   e.preventDefault();
+  //   setLoading({ ...loading, add: true });
+  
+  //   // Input validation
+  //   if (!taxDetails.tax_name || !taxDetails.tax_percentage) {
+  //     alert("Tax Name and Tax Percentage are required.");
+  //     setLoading({ ...loading, add: false });
+  //     return;
+  //   }
+  
+  //   try {
+  //     if (editIndex !== null) {
+  //       // Update logic
+  //       const responce =await api.put(`/api/user/taxes/${taxList[editIndex].id}/`, taxDetails); // Ensure this endpoint and payload are correct
+  //       const updatedList = [...taxList];
+  //       updatedList[editIndex] = taxDetails;
+  //       setTaxList(updatedList);
+  //       console.log("Updated", taxDetails);
+  //       alert(responce.data.message);
+  //     } else {
+  //       // Add logic
+  //       const response = await api.post('/api/user/taxes/', taxDetails); // Ensure this is correct
+  //       setTaxList([...taxList, response.data]); // Assuming the response contains the added tax data
+  //       console.log("Added", taxDetails);
+  //       alert(response.data.message);
+  //     }
+  
+  //     // Reset the form and state
+  //     setTaxDetails({
+  //       tax_name: '',
+  //       tax_percentage: '',
+  //       description: ''
+  //     });
+  //     setEditIndex(null); // Reset edit index after successful update
+  //     setOpen(false); // Close the dialog after adding or updating
+  //   } catch (error) {
+  //     console.error("Error adding/updating tax", error);
+  //   } finally {
+  //     setLoading({ ...loading, add: false }); // Ensure loading state is correctly set
+  //   }
+  // };
+  
+
   const handleAddOrUpdate = async (e) => {
     e.preventDefault();
-    setLoading({ ...loading, add: true });
-  
-    // Input validation
-    if (!taxDetails.tax_name || !taxDetails.tax_percentage) {
-      alert("Tax Name and Tax Percentage are required.");
-      setLoading({ ...loading, add: false });
-      return;
+    setLoading((prev) => ({ ...prev, add: true }));
+
+    // Validation rules
+    const errors = [];
+
+    const taxNameRegex = /^[A-Za-z-\s]+$/; // Allows letters, hyphens (-), and spaces
+    const descriptionRegex = /^[A-Za-z0-9-\s,]+$/; // Allows letters, numbers, spaces, hyphens (-), and commas (,)
+
+    if (!taxDetails.tax_name.trim()) {
+        errors.push("Tax Name is required.");
+    } else if (!taxNameRegex.test(taxDetails.tax_name)) {
+        errors.push("Tax Name can only contain letters, hyphens (-), and spaces.");
     }
-  
+
+    if (!taxDetails.tax_percentage) {
+        errors.push("Tax Percentage is required.");
+    } else if (isNaN(taxDetails.tax_percentage) || taxDetails.tax_percentage < 0) {
+        errors.push("Tax Percentage must be a valid positive number.");
+    }
+
+    if (taxDetails.description.trim() && !descriptionRegex.test(taxDetails.description)) {
+        errors.push("Description can only contain letters, numbers, spaces, hyphens (-), and commas (,).");
+    }
+
+    if (errors.length > 0) {
+        alert("Validation Errors:\n" + errors.join("\n"));
+        setLoading((prev) => ({ ...prev, add: false }));
+        return;
+    }
+
     try {
-      if (editIndex !== null) {
-        // Update logic
-        const responce =await api.put(`/api/user/taxes/${taxList[editIndex].id}/`, taxDetails); // Ensure this endpoint and payload are correct
-        const updatedList = [...taxList];
-        updatedList[editIndex] = taxDetails;
-        setTaxList(updatedList);
-        console.log("Updated", taxDetails);
-        alert(responce.data.message);
-      } else {
-        // Add logic
-        const response = await api.post('/api/user/taxes/', taxDetails); // Ensure this is correct
-        setTaxList([...taxList, response.data]); // Assuming the response contains the added tax data
-        console.log("Added", taxDetails);
-        alert(response.data.message);
-      }
-  
-      // Reset the form and state
-      setTaxDetails({
-        tax_name: '',
-        tax_percentage: '',
-        description: ''
-      });
-      setEditIndex(null); // Reset edit index after successful update
-      setOpen(false); // Close the dialog after adding or updating
+        let response;
+        if (editIndex !== null) {
+            // Update logic
+            response = await api.put(`/api/user/taxes/${taxList[editIndex].id}/`, taxDetails);
+            alert(response.data.message);
+        } else {
+            // Add logic
+            response = await api.post("/api/user/taxes/", taxDetails);
+            alert(response.data.message);
+        }
+
+        // ✅ Fetch updated tax list after add/update
+        fetchTaxList();
+
+        // Reset form
+        setTaxDetails({
+            tax_name: "",
+            tax_percentage: "",
+            description: "",
+        });
+        setEditIndex(null);
+        setOpen(false);
     } catch (error) {
-      console.error("Error adding/updating tax", error);
+        console.error("Error adding/updating tax:", error);
+        
+        // Show backend validation error (if available)
+        if (error.response && error.response.data && error.response.data.error) {
+            const backendErrors = Object.values(error.response.data.error).flat().join("\n");
+            alert(`Backend Error:\n${backendErrors}`);
+        } else {
+            alert("An unexpected error occurred. Please try again.");
+        }
     } finally {
-      setLoading({ ...loading, add: false }); // Ensure loading state is correctly set
+        setLoading((prev) => ({ ...prev, add: false }));
     }
-  };
-  
+};
+
   const handleEdit = (index) => {
     setTaxDetails(taxList[index]); // Populate form with the selected tax's details
     setEditIndex(index); // Set the index of the tax being edited

@@ -3,6 +3,7 @@ from django.apps import apps
 from django.utils import timezone
 from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist
+from decimal import Decimal
 class Order(models.Model):
     bill_number = models.CharField(max_length=10, unique=True, blank=True)  # For the serial bill number
     fullname = models.CharField(max_length=255)
@@ -10,7 +11,7 @@ class Order(models.Model):
     address = models.TextField()
     tax_type=models.CharField(max_length=30,default='na')
     tax = models.DecimalField(max_digits=10, decimal_places=2)
-    discount = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
     grand_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     payment_method1 = models.CharField(max_length=100,default='cash')
@@ -28,9 +29,14 @@ class Order(models.Model):
         total_items_price = sum(item.total_item_price for item in self.items.all())
         return total_items_price
 
+    # def calculate_total_price(self):
+    #     # Calculate total price after applying tax and discount
+    #     return self.calculate_grand_total() + self.tax - self.discount
     def calculate_total_price(self):
-        # Calculate total price after applying tax and discount
-        return self.calculate_grand_total() + self.tax - self.discount
+        discount = self.discount if self.discount is not None else Decimal("0.00")
+        tax = self.tax if self.tax is not None else Decimal("0.00")
+
+        return self.calculate_grand_total() + tax - discount
     def save(self, *args, **kwargs):
         if not self.bill_number:
             try:

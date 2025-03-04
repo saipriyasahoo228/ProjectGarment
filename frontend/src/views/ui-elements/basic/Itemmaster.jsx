@@ -65,29 +65,120 @@ export default function ItemMaster() {
 
   
 
-  const handleAddOrUpdate = async (e) => {
-    e.preventDefault();
-    setLoading({ ...loading, add: true });
+//   const handleAddOrUpdate = async (e) => {
+//     e.preventDefault();
+//     setLoading({ ...loading, add: true });
 
-    try {
-        if (editIndex !== null) {
-            const response = await api.put(`/api/user/items/${itemDetails.item_code}/`, itemDetails);
-            alert(response.data.message);
-        } else {
-            const response = await api.post('/api/user/items-post/', itemDetails);
-            alert(response.data.message);
-        }
+//     try {
+//         if (editIndex !== null) {
+//             const response = await api.put(`/api/user/items/${itemDetails.item_code}/`, itemDetails);
+//             alert(response.data.message);
+//         } else {
+//             const response = await api.post('/api/user/items-post/', itemDetails);
+//             alert(response.data.message);
+//         }
 
-        // 🔹 Fetch updated data immediately
-        await fetchItems();  
-    } catch (error) {
-        console.error("Error adding/updating item:", error);
-        alert("Error adding/updating item:", error);
-    } finally {
-        setLoading({ ...loading, add: false });
-        handleClose();
-    }
+//         // 🔹 Fetch updated data immediately
+//         await fetchItems();  
+//     } catch (error) {
+//         console.error("Error adding/updating item:", error);
+//         alert("Error adding/updating item:", error);
+//     } finally {
+//         setLoading({ ...loading, add: false });
+//         handleClose();
+//     }
+// };
+
+const validateInputs = () => {
+  let errors = [];
+
+  // ✅ Required Fields Validation
+  if (!itemDetails.item_name) errors.push("⚠️ Item Name is required.");
+  if (!itemDetails.item_code) errors.push("⚠️ Item Code is required.");
+  if (!itemDetails.hsn_code) errors.push("⚠️ HSN Code is required.");
+  if (!itemDetails.category_name) errors.push("⚠️ Category is required.");
+  if (!itemDetails.sub_category) errors.push("⚠️ Sub-Category is required.");
+
+  // ✅ Regex validations
+  const itemNameRegex = /^[A-Za-z\s']+$/; 
+  const itemCodeRegex = /^[A-Za-z0-9_]+$/;
+  const hsnCodeRegex = /^[A-Za-z0-9_]+$/;
+  const sizeRegex = /^[A-Za-z0-9]+$/;
+  const unitPriceRegex = /^[0-9]+(\.[0-9]+)?$/;
+  const stockQuantityRegex = /^[0-9]+$/;
+  const descriptionRegex = /^[A-Za-z0-9\s,]*$/; 
+
+  // ✅ Format validation (only if field is filled)
+  if (itemDetails.item_name && !itemNameRegex.test(itemDetails.item_name)) 
+    errors.push("⚠️ Item Name: Only letters, spaces, and apostrophe are allowed.");
+
+  if (itemDetails.item_code && !itemCodeRegex.test(itemDetails.item_code)) 
+    errors.push("⚠️ Item Code: Only alphanumeric and underscore are allowed.");
+
+  if (itemDetails.hsn_code && !hsnCodeRegex.test(itemDetails.hsn_code)) 
+    errors.push("⚠️ HSN Code: Only alphanumeric and underscore are allowed.");
+
+  // ✅ Validate sizes **only if they are provided**
+  itemDetails.sizes.forEach((sizeObj, index) => {
+    if (sizeObj.size && !sizeRegex.test(sizeObj.size)) 
+      errors.push(`⚠️ Size ${index + 1}: Only letters and numbers allowed.`);
+    
+    if (sizeObj.unit_price && !unitPriceRegex.test(sizeObj.unit_price)) 
+      errors.push(`⚠️ Unit Price ${index + 1}: Only numbers and dot allowed.`);
+    
+    if (sizeObj.stock_quantity && !stockQuantityRegex.test(sizeObj.stock_quantity)) 
+      errors.push(`⚠️ Stock Quantity ${index + 1}: Only digits allowed.`);
+  });
+
+  // ✅ Validate description **only if it's provided**
+  if (itemDetails.description && !descriptionRegex.test(itemDetails.description)) 
+    errors.push("⚠️ Description: Only letters, digits, spaces, and commas allowed.");
+
+  if (errors.length > 0) {
+    alert(errors.join("\n")); // Show all errors in an alert box
+    return false;
+  }
+  return true;
 };
+const handleAddOrUpdate = async (e) => {
+  e.preventDefault();
+  setLoading({ ...loading, add: true });
+
+  if (!validateInputs()) {
+    setLoading({ ...loading, add: false });
+    return; // Stop submission if validation fails
+  }
+
+  try {
+    let response;
+    if (editIndex !== null) {
+      response = await api.put(`/api/user/items/${itemDetails.item_code}/`, itemDetails);
+    } else {
+      response = await api.post('/api/user/items-post/', itemDetails);
+    }
+
+    alert("✅ Success: " + response.data.message);
+    await fetchItems();
+  } catch (error) {
+    console.error("❌ Backend Error:", error);
+
+    if (error.response) {
+      // If backend returns validation errors
+      if (error.response.data && typeof error.response.data === "object") {
+        let backendErrors = Object.values(error.response.data).flat(); // Convert errors into an array
+        alert("❌ Backend Errors:\n" + backendErrors.join("\n"));
+      } else {
+        alert("❌ Error: " + error.response.data.message || "Something went wrong.");
+      }
+    } else {
+      alert("❌ Network error. Please try again.");
+    }
+  } finally {
+    setLoading({ ...loading, add: false });
+    handleClose();
+  }
+};
+
 
 
   const handleCategoryChange = async (e) => {
@@ -255,7 +346,7 @@ export default function ItemMaster() {
           <form>
             <TextField
               fullWidth
-              label="Item Name"
+              label="Brand Name"
               name="item_name"
               value={itemDetails.item_name}
               onChange={handleChange}
@@ -264,7 +355,7 @@ export default function ItemMaster() {
 
             <TextField
               fullWidth
-              label="Item Code"
+              label="Brand Code"
               name="item_code"
               value={itemDetails.item_code}
               onChange={handleChange}
@@ -382,7 +473,7 @@ export default function ItemMaster() {
           
           <TableHead sx={{ backgroundColor: '#e0f7fa' }}>
             <TableRow>
-              {[ 'Item Name', 'Item Code', 'Category', 'Sub-Category', 'HSN Code', 'Stock details (size,price & quantities)', 'Description', 'Actions'].map(header => (
+              {[ 'Brand Name', 'Brand Code', 'Category', 'Sub-Category', 'HSN Code', 'Stock details (size,price & quantities)', 'Description', 'Actions'].map(header => (
                 <TableCell key={header} sx={{ fontWeight: 'bold' }}>{header}</TableCell>
               ))}
             </TableRow>

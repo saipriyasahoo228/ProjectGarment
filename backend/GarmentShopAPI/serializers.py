@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User,Company,Category,SubCategory,Item,Design,Party,Tax,FinancialYear,ItemSize
 from django.contrib.auth.hashers import make_password
+import re
 
 """ ------------User registration serializers--------------"""
 # class UserRegisterSerializer(serializers.ModelSerializer):
@@ -72,11 +73,25 @@ class TokenRefreshSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
 
 #Company Serializer
+# class CompanySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Company
+#         fields = ['id', 'company_name', 'gst', 'pan', 'phone', 'email', 'address']
+        
+#     def validate_gst(self, value):
+#         if len(value) != 15:
+#             raise serializers.ValidationError("GST number must be 15 characters long.")
+#         return value
+
+#     def validate_pan(self, value):
+#         if len(value) != 10:
+#             raise serializers.ValidationError("PAN number must be 10 characters long.")
+#         return value
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['id', 'company_name', 'gst', 'pan', 'phone', 'email', 'address']
-        
+
     def validate_gst(self, value):
         if len(value) != 15:
             raise serializers.ValidationError("GST number must be 15 characters long.")
@@ -87,6 +102,17 @@ class CompanySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("PAN number must be 10 characters long.")
         return value
 
+    def validate_company_name(self, value):
+        """Allow only alphabets (uppercase/lowercase) and hyphens."""
+        if not re.fullmatch(r'^[A-Za-z\-\s]+$', value):
+            raise serializers.ValidationError("Company name can only contain alphabets (A-Z, a-z) and hyphens (-).")
+        return value
+
+    def validate_address(self, value):
+        """Allow uppercase, lowercase, digits, space, and hyphen."""
+        if not re.fullmatch(r'^[A-Za-z0-9\-\s]+$', value):
+            raise serializers.ValidationError("Address can only contain letters (A-Z, a-z), digits (0-9), spaces, and hyphens (-).")
+        return value
 
 #Catagory Creation Serializer
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -101,6 +127,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['category_code', 'category_name', 'description', 'sub_category_name']
+        extra_kwargs = {'description': {'required': False, 'allow_blank': True}}  # Make description optional
 
     def create(self, validated_data):
         sub_category_data = validated_data.pop('sub_category_name')

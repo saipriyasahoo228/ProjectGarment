@@ -31,26 +31,44 @@ export default function SimplePaper() {
   const addressRef = useRef(null);
 
   // Fetch company list on component mount
-  useEffect(() => {
-    const fetchCompanyList = async () => {
-      setLoading((prevLoading) => ({ ...prevLoading, fetch: true }));
-      try {
-        const response = await api.get('/api/user/companies'); // Adjust endpoint as needed
-        console.log("Fetched Company List Response:", response.data);
-        //alert("Fetched Company List Response:", response.data);
+  // useEffect(() => {
+  //   const fetchCompanyList = async () => {
+  //     setLoading((prevLoading) => ({ ...prevLoading, fetch: true }));
+  //     try {
+  //       const response = await api.get('/api/user/companies'); // Adjust endpoint as needed
+  //       console.log("Fetched Company List Response:", response.data);
+  //       //alert("Fetched Company List Response:", response.data);
         
-        // Use response.data.data to get the array of companies
-        setCompanyList(Array.isArray(response.data.data) ? response.data.data : []);
-      } catch (error) {
-        console.error("Error fetching companies:", error);
+  //       // Use response.data.data to get the array of companies
+  //       setCompanyList(Array.isArray(response.data.data) ? response.data.data : []);
+  //     } catch (error) {
+  //       console.error("Error fetching companies:", error);
 
-      } finally {
-        setLoading((prevLoading) => ({ ...prevLoading, fetch: false }));
-      }
-    };
+  //     } finally {
+  //       setLoading((prevLoading) => ({ ...prevLoading, fetch: false }));
+  //     }
+  //   };
 
+  //   fetchCompanyList();
+  // }, []);
+  useEffect(() => {
     fetchCompanyList();
-  }, []);
+}, []);
+const fetchCompanyList = async () => {
+  setLoading((prevLoading) => ({ ...prevLoading, fetch: true }));
+  try {
+      const response = await api.get('/api/user/companies'); // Adjust endpoint as needed
+      console.log("Fetched Company List Response:", response.data);
+
+      // ✅ Ensure correct data format
+      setCompanyList(Array.isArray(response.data.data) ? response.data.data : []);
+  } catch (error) {
+      console.error("Error fetching companies:", error);
+  } finally {
+      setLoading((prevLoading) => ({ ...prevLoading, fetch: false }));
+  }
+};
+
 
 
   const handleChange = (e) => {
@@ -87,6 +105,7 @@ export default function SimplePaper() {
             setCompanyList((prevList) => [...prevList, response.data]);
             alert(response.data.message || "Company added successfully");
         }
+        fetchCompanyList()
     } catch (error) {
         console.error("Error adding/updating company:", error);
 
@@ -248,6 +267,7 @@ export default function SimplePaper() {
                 value={companyDetails.phone}
                 onChange={handleChange}
                 margin="normal"
+                required
                 inputRef={phoneRef}  // Ref for this field
                 onKeyDown={(e) => handleKeyDown(e, emailRef)}  // Move to Email field on Enter
               />
@@ -262,6 +282,7 @@ export default function SimplePaper() {
                 value={companyDetails.email}
                 onChange={handleChange}
                 margin="normal"
+                required
                 inputRef={emailRef}  // Ref for this field
                 onKeyDown={(e) => handleKeyDown(e, addressRef)}  // Move to Address field on Enter
               />
@@ -275,6 +296,7 @@ export default function SimplePaper() {
                 name="address"
                 value={companyDetails.address}
                 onChange={handleChange}
+                required
                 margin="normal"
                 inputRef={addressRef}  // Ref for this field
               />

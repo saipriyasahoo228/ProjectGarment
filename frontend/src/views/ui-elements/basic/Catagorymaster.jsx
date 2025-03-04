@@ -94,99 +94,128 @@ export default function SimplePaper() {
   };
   
 
+  // const handleAddOrUpdate = async (e) => {
+  //   e.preventDefault();
+  //   setLoading((prevLoading) => ({ ...prevLoading, add: true }));
+  
+  //   const payload = {
+  //     ...categoryDetails,
+  //     sub_category_name: categoryDetails.sub_category_name.split(',').map((name) => ({ name: name.trim() })), // Convert to object format
+  //   };
+  
+  //   try {
+  //     if (editIndex !== null) {
+  //       // Update existing category
+  //       const response = await api.put(`/api/user/categories/${categoryDetails.category_name}/`, payload);
+  //       setCategoryList((prevList) => ({
+  //         ...prevList,
+  //         [categoryDetails.category_code]: response.data.data,
+  //       }));
+  //       alert(response.data.message);
+  //       setEditIndex(null);
+  //     } else {
+  //       // Add new category
+  //       const response = await api.post('/api/user/categories/', payload);
+  //       setCategoryList((prevList) => ({
+  //         ...prevList,
+  //         [response.data.data.category_code]: response.data.data,
+  //       }));
+  //       alert(response.data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving category:', error);
+  //   } finally {
+  //     setLoading((prevLoading) => ({ ...prevLoading, add: false }));
+  //     setCategoryDetails({
+  //       category_name: '',
+  //       category_code: '',
+  //       sub_category_name: '',
+  //       description: '',
+  //     });
+  //     setOpen(false);
+  //   }
+  // };
   const handleAddOrUpdate = async (e) => {
     e.preventDefault();
     setLoading((prevLoading) => ({ ...prevLoading, add: true }));
-  
-    const payload = {
-      ...categoryDetails,
-      sub_category_name: categoryDetails.sub_category_name.split(',').map((name) => ({ name: name.trim() })), // Convert to object format
-    };
-  
-    try {
-      if (editIndex !== null) {
-        // Update existing category
-        const response = await api.put(`/api/user/categories/${categoryDetails.category_name}/`, payload);
-        setCategoryList((prevList) => ({
-          ...prevList,
-          [categoryDetails.category_code]: response.data.data,
-        }));
-        alert(response.data.message);
-        setEditIndex(null);
-      } else {
-        // Add new category
-        const response = await api.post('/api/user/categories/', payload);
-        setCategoryList((prevList) => ({
-          ...prevList,
-          [response.data.data.category_code]: response.data.data,
-        }));
-        alert(response.data.message);
-      }
-    } catch (error) {
-      console.error('Error saving category:', error);
-    } finally {
-      setLoading((prevLoading) => ({ ...prevLoading, add: false }));
-      setCategoryDetails({
-        category_name: '',
-        category_code: '',
-        sub_category_name: '',
-        description: '',
-      });
-      setOpen(false);
+
+    // Validation rules
+    const errors = [];
+
+    const categoryNameRegex = /^[A-Za-z\s']+$/; // Allows letters, spaces, and apostrophes (')
+    const categoryCodeRegex = /^[A-Za-z0-9-]+$/; // Allows letters, numbers, and hyphens (-)
+    const subCategoryRegex = /^[A-Za-z-,\s]+$/; // Allows letters, hyphens, commas, and spaces
+    //const descriptionRegex = /^[A-Za-z0-9-]+$/; // Allows only letters, spaces, and hyphens (-)
+    const descriptionRegex = /^[A-Za-z0-9-\s]+$/; 
+
+
+    if (!categoryDetails.category_name.trim()) {
+        errors.push("Category Name is required.");
+    } else if (!categoryNameRegex.test(categoryDetails.category_name)) {
+        errors.push("Category Name can only contain letters (A-Z, a-z), spaces, and apostrophes (').");
     }
-  };
 
-//   const handleAddOrUpdate = async (e) => {
-//     e.preventDefault();
-//     setLoading((prevLoading) => ({ ...prevLoading, add: true }));
+    if (!categoryDetails.category_code.trim()) {
+        errors.push("Category Code is required.");
+    } else if (!categoryCodeRegex.test(categoryDetails.category_code)) {
+        errors.push("Category Code can only contain letters, numbers, and hyphens (-).");
+    }
 
-//     // 🔹 Validation Check
-//     if (!categoryDetails.category_name.trim() || 
-//         !categoryDetails.category_code.trim() || 
-//         !categoryDetails.sub_category_name.trim()) {
-        
-//         alert("Please fill all required fields: Category Name, Category Code, and Sub-Category Names.");
-//         setLoading((prevLoading) => ({ ...prevLoading, add: false }));
-//         return;
-//     }
+    if (!categoryDetails.sub_category_name.trim()) {
+        errors.push("Sub-Category Name is required.");
+    } else if (!subCategoryRegex.test(categoryDetails.sub_category_name)) {
+        errors.push("Sub-Category Name can only contain letters, hyphens (-), commas (,), and spaces.");
+    }
 
-//     const payload = {
-//         ...categoryDetails,
-//         sub_category_name: categoryDetails.sub_category_name.split(',').map(name => ({ name: name.trim() })),
-//     };
+    if (categoryDetails.description.trim() && !descriptionRegex.test(categoryDetails.description)) {
+        errors.push("Description can only contain letters,disits, spaces, and hyphens (-).");
+    }
 
-//     try {
-//         if (editIndex !== null) {
-//             // Update existing category
-//             const response = await api.put(`/api/user/categories/${categoryDetails.category_name}/`, payload);
-//             setCategoryList((prevList) => ({
-//                 ...prevList,
-//                 [categoryDetails.category_code]: response.data.data,
-//             }));
-//             alert(response.data.message);
-//             setEditIndex(null);
-//         } else {
-//             // Add new category
-//             const response = await api.post('/api/user/categories/', payload);
-//             setCategoryList((prevList) => ({
-//                 ...prevList,
-//                 [response.data.data.category_code]: response.data.data,
-//             }));
-//             alert(response.data.message);
-//         }
-//     } catch (error) {
-//         console.error('Error saving category:', error);
-//     } finally {
-//         setLoading((prevLoading) => ({ ...prevLoading, add: false }));
-//         setCategoryDetails({
-//             category_name: '',
-//             category_code: '',
-//             sub_category_name: '',
-//             description: '',
-//         });
-//         setOpen(false);
-//     }
-// };
+    if (errors.length > 0) {
+        alert("Validation Errors:\n" + errors.join("\n"));
+        setLoading((prevLoading) => ({ ...prevLoading, add: false })); // ✅ Reset loading state on error
+        return;
+    }
+
+    const payload = {
+        ...categoryDetails,
+        sub_category_name: categoryDetails.sub_category_name
+            .split(',')
+            .map((name) => ({ name: name.trim() })), // Convert to object format
+    };
+
+    try {
+        if (editIndex !== null) {
+            // Update existing category
+            const response = await api.put(`/api/user/categories/${categoryDetails.category_name}/`, payload);
+            setCategoryList((prevList) => ({
+                ...prevList,
+                [categoryDetails.category_code]: response.data.data,
+            }));
+            alert(response.data.message);
+            setEditIndex(null);
+        } else {
+            // Add new category
+            const response = await api.post('/api/user/categories/', payload);
+            setCategoryList((prevList) => ({
+                ...prevList,
+                [response.data.data.category_code]: response.data.data,
+            }));
+            alert(response.data.message);
+        }
+    } catch (error) {
+        console.error('Error saving category:', error);
+    } finally {
+        setLoading((prevLoading) => ({ ...prevLoading, add: false })); // ✅ Ensure loading is reset
+        setCategoryDetails({
+            category_name: '',
+            category_code: '',
+            sub_category_name: '',
+            description: '',
+        });
+        setOpen(false);
+    }
+};
 
   
 
@@ -307,6 +336,7 @@ export default function SimplePaper() {
                 onChange={handleChange}
                 onKeyDown={(e) => handleKeyDown(e, descriptionRef)}
                 inputRef={subCategoryRef}
+                required
                 margin="normal"
               />
               <TextField

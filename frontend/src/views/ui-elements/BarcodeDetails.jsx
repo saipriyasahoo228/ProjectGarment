@@ -41,6 +41,9 @@ export default function StockEntry() {
   const [previewModal, setPreviewModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState('');
   const [subCategoryName, setSubCategoryName] = useState('');
+  
+  
+
 
   // Fetch stock entries and categories on component mount
   useEffect(() => {
@@ -106,42 +109,87 @@ export default function StockEntry() {
 
   
 
-  const handleModalSubmit = () => {
-    // Check if all required fields are filled
-    if (!quantity || !selectedItem  || !itemSize || !shopName || !categoryName || !subCategoryName) {
-      setError('Please fill in all fields.');
-      return;
+  // const handleModalSubmit = () => {
+  //   // Check if all required fields are filled
+  //   if (!quantity || !selectedItem  || !itemSize || !shopName || !categoryName || !subCategoryName) {
+  //     setError('Please fill in all fields.');
+  //     return;
+  //   }
+  
+  //   // Create the new entry object
+  //   const newEntry = {
+  //     item_name: selectedItem ,
+  //     quantity: parseInt(quantity, 10),
+  //     item_price: parseFloat(itemPrice),
+  //     item_size: itemSize,
+  //     shop_name: shopName,
+  //     category_name: categoryName,
+  //     sub_category: subCategoryName, // Include sub_category
+  //   };
+  
+  //   // Print the newEntry object in the console
+  //   console.log('New entry data:', newEntry);
+  
+  //   // Send the data to the API
+  //   api
+  //     .post('api/barcode/code/', newEntry)
+  //     .then((response) => {
+  //       setStockEntries([...stockEntries, response.data]);
+  //       resetForm();
+  
+  //       // Show success alert
+  //       alert('Barcode is created successfully !');
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error in barcoding:', error);
+  //       alert('Error in barcoding. Please try again.');
+  //     });
+  // };
+  // const resetForm = () => {
+  //   setSelectedItem('');
+  //   setBarcode('');
+  //   setQuantity('');
+  //   setItemSize('');
+  //   setShopName('');
+  //   setItemPrice('');
+  //   setCategoryName('');
+  //   setItemName('');
+  //   setSubCategoryName('');
+  //   setError('');
+  //   setOpenModal(false);
+  // };
+
+
+  const validateInputs = () => {
+    const quantityRegex = /^[0-9]+$/; // Allow only digits
+    const itemPriceRegex = /^[0-9]+(\.[0-9]+)?$/; // Allow digits and dot
+    const itemSizeRegex = /^[A-Za-z0-9]+$/; // Allow upper, lower, digits
+    const shopNameRegex = /^[A-Za-z\s]+$/; // Allow upper, lower, space
+  
+    if (!quantity || !quantityRegex.test(quantity)) {
+      setError("Invalid quantity: Only digits are allowed.");
+      return false;
     }
   
-    // Create the new entry object
-    const newEntry = {
-      item_name: selectedItem ,
-      quantity: parseInt(quantity, 10),
-      item_price: parseFloat(itemPrice),
-      item_size: itemSize,
-      shop_name: shopName,
-      category_name: categoryName,
-      sub_category: subCategoryName, // Include sub_category
-    };
+    if (!itemPrice || !itemPriceRegex.test(itemPrice)) {
+      setError("Invalid price: Only numbers and a decimal point are allowed.");
+      return false;
+    }
   
-    // Print the newEntry object in the console
-    console.log('New entry data:', newEntry);
+    if (!itemSize || !itemSizeRegex.test(itemSize)) {
+      setError("Invalid item size: Only letters and numbers are allowed.");
+      return false;
+    }
   
-    // Send the data to the API
-    api
-      .post('api/barcode/code/', newEntry)
-      .then((response) => {
-        setStockEntries([...stockEntries, response.data]);
-        resetForm();
+    if (!shopName || !shopNameRegex.test(shopName)) {
+      setError("Invalid shop name: Only letters and spaces are allowed.");
+      return false;
+    }
   
-        // Show success alert
-        alert('Barcode is created successfully !');
-      })
-      .catch((error) => {
-        console.error('Error in barcoding:', error);
-        alert('Error in barcoding. Please try again.');
-      });
+    setError(""); // Clear error if validation passes
+    return true;
   };
+  
   const resetForm = () => {
     setSelectedItem('');
     setBarcode('');
@@ -155,6 +203,36 @@ export default function StockEntry() {
     setError('');
     setOpenModal(false);
   };
+  
+  const handleModalSubmit = () => {
+    if (!validateInputs()) {
+      return;
+    }
+  
+    const newEntry = {
+      item_name: selectedItem, // No validation
+      quantity: parseInt(quantity, 10),
+      item_price: parseFloat(itemPrice),
+      item_size: itemSize,
+      shop_name: shopName,
+      category_name: categoryName, // No validation
+      sub_category: subCategoryName, // No validation
+    };
+  
+    console.log("New entry data:", newEntry);
+  
+    api
+      .post("api/barcode/code/", newEntry)
+      .then((response) => {
+        setStockEntries([...stockEntries, response.data]);
+        resetForm(); // Reset form after successful submission
+      })
+      .catch((error) => {
+        console.error("Error in barcoding:", error);
+        setError("Error in barcoding. Please try again."); // Show error inside modal
+      });
+  };
+  
   
 
   const handlePrint = () => {
@@ -222,7 +300,7 @@ export default function StockEntry() {
       {/* Modal for adding stock */}
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 700, bgcolor: '#f9dff5', border: '2px solid #000', boxShadow: 24, p: 4 }}>
-          <Typography variant="h6">Enter Stock Details</Typography>
+          <Typography variant="h6">Add Barcode Details</Typography>
 
           <FormControl fullWidth margin="normal">
             <InputLabel>Category</InputLabel>

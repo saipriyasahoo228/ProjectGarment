@@ -319,13 +319,127 @@ export default function RetailSale() {
 //   }
 // };
 
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
+
+//   if (previewItems.length === 0) {
+//     alert("No items added! Please add at least one item before submitting.");
+//     return;
+//   }
+
+//   const payload = {
+//     fullname: formData.fullName.trim(),
+//     phone_number: formData.number.trim(),
+//     address: formData.address.trim(),
+//     tax: parseFloat(formData.tax).toFixed(2),
+//     tax_type: "SGST",
+//     //discount: parseFloat(formData.discount).toFixed(2) ,
+//     discount: formData.discount ? parseFloat(formData.discount).toFixed(2) : null,
+//     payment_method1: formData.paymentMethod1.trim(),
+//     payment_method1_amount: parseFloat(formData.amount1).toFixed(2),
+//     payment_method2: formData.paymentMethod2.trim(),
+//     payment_method2_amount: parseFloat(formData.amount2).toFixed(2),
+//     narration: formData.narration.trim(),
+//     saletype: formData.saletype.trim(),
+//     items: previewItems.map(({ barcode, category, sub_category, size, item_name, unit, unit_price }) => ({
+//       barcode: barcode?.trim() || "",
+//       category: category?.trim() || "",
+//       sub_category: sub_category?.trim() || "",
+//       size: size?.trim() || "",
+//       item_name: item_name?.trim() || "",
+//       unit: Number(unit) || 1,
+//       unit_price: unit_price ? parseFloat(unit_price).toFixed(2) : "0.00",
+//     })),
+//   };
+
+//   try {
+//     const response = await api.post("api/retailsale/create-order/", payload);
+    
+//     // ✅ Extract bill number from response
+//     const billNumberFromResponse = response.data?.bill_number || null;
+//     setBillNumber(billNumberFromResponse); // Store bill number in state
+
+//     console.log("✅ API Response:", JSON.stringify(response.data, null, 2));
+
+//     alert(`Form submitted successfully! Bill Number: ${billNumberFromResponse}`);
+
+//     // Reset form and state
+//     setFormData({
+//       fullName: "",
+//       number: "",
+//       address: "",
+//       tax: "",
+//       discount: "",
+//       totalPrice: "",
+//       paymentMethod1: "Cash",
+//       paymentMethod2: "UPI",
+//       amount1: "",
+//       amount2: "",
+//       saletype: "RetailSale",
+//       narration: "",
+//     });
+
+//     setPreviewItems([]);
+//     setItems([{ barcode: "", category: "", sub_category: "", size: "", item_name: "", unit: "1", unit_price: "0.00" }]);
+
+//   } catch (error) {
+//     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+//     alert(`Submission failed: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+//   }
+// };
+const validatePayload = (formData, previewItems) => {
+  let errors = [];
+
+  // ✅ Required Fields Validation
+  if (!formData.fullName.trim()) errors.push("⚠️ Full Name is required.");
+  if (!formData.number.trim()) errors.push("⚠️ Phone Number is required.");
+  if (!formData.address.trim()) errors.push("⚠️ Address is required.");
+  if (!formData.tax) errors.push("⚠️ Tax is required.");
+  if (!formData.paymentMethod1.trim()) errors.push("⚠️ Payment Method 1 is required.");
+  if (!formData.amount1) errors.push("⚠️ Payment Method 1 Amount is required.");
+  if (!formData.paymentMethod2.trim()) errors.push("⚠️ Payment Method 2 is required.");
+  if (!formData.amount2) errors.push("⚠️ Payment Method 2 Amount is required.");
+  if (!formData.saletype.trim()) errors.push("⚠️ Sale Type is required.");
+  if (previewItems.length === 0) errors.push("⚠️ No items added! Please add at least one item.");
+
+  // ✅ Format Validations
+  const phoneRegex = /^[0-9]{10}$/; // Only 10-digit numbers allowed
+  const taxRegex = /^\d+(\.\d{1,2})?$/; // Number with up to 2 decimal places
+  const amountRegex = /^\d+(\.\d{1,2})?$/; // Number with up to 2 decimal places
+
+  if (!phoneRegex.test(formData.number.trim())) 
+    errors.push("⚠️ Phone Number must be 10 digits.");
+
+  if (!taxRegex.test(formData.tax)) 
+    errors.push("⚠️ Tax must be a valid number with up to 2 decimal places.");
+
+  if (!amountRegex.test(formData.amount1)) 
+    errors.push("⚠️ Payment Method 1 Amount must be a valid number with up to 2 decimal places.");
+
+  if (!amountRegex.test(formData.amount2)) 
+    errors.push("⚠️ Payment Method 2 Amount must be a valid number with up to 2 decimal places.");
+
+  // ✅ Validate Items
+  previewItems.forEach((item, index) => {
+    if (!item.barcode.trim()) errors.push(`⚠️ Item ${index + 1}: Barcode is required.`);
+    if (!item.category.trim()) errors.push(`⚠️ Item ${index + 1}: Category is required.`);
+    if (!item.sub_category.trim()) errors.push(`⚠️ Item ${index + 1}: Sub-Category is required.`);
+    if (!item.item_name.trim()) errors.push(`⚠️ Item ${index + 1}: Item Name is required.`);
+    if (!item.unit_price || !amountRegex.test(item.unit_price)) 
+      errors.push(`⚠️ Item ${index + 1}: Unit Price must be a valid number.`);
+  });
+
+  if (errors.length > 0) {
+    alert(errors.join("\n")); // Show all errors in an alert box
+    return false;
+  }
+  return true;
+};
+
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  if (previewItems.length === 0) {
-    alert("No items added! Please add at least one item before submitting.");
-    return;
-  }
+  if (!validatePayload(formData, previewItems)) return; // Stop if validation fails
 
   const payload = {
     fullname: formData.fullName.trim(),
@@ -333,7 +447,7 @@ const handleSubmit = async (e) => {
     address: formData.address.trim(),
     tax: parseFloat(formData.tax).toFixed(2),
     tax_type: "SGST",
-    discount: parseFloat(formData.discount).toFixed(2),
+    discount: formData.discount ? parseFloat(formData.discount).toFixed(2) : null,
     payment_method1: formData.paymentMethod1.trim(),
     payment_method1_amount: parseFloat(formData.amount1).toFixed(2),
     payment_method2: formData.paymentMethod2.trim(),
@@ -358,9 +472,7 @@ const handleSubmit = async (e) => {
     const billNumberFromResponse = response.data?.bill_number || null;
     setBillNumber(billNumberFromResponse); // Store bill number in state
 
-    console.log("✅ API Response:", JSON.stringify(response.data, null, 2));
-
-    alert(`Form submitted successfully! Bill Number: ${billNumberFromResponse}`);
+    alert(`✅ Form submitted successfully! Bill Number: ${billNumberFromResponse}`);
 
     // Reset form and state
     setFormData({
@@ -383,7 +495,14 @@ const handleSubmit = async (e) => {
 
   } catch (error) {
     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
-    alert(`Submission failed: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+    
+    // Show backend errors in an alert
+    if (error.response && error.response.data) {
+      const backendErrors = Object.values(error.response.data).flat();
+      alert(`❌ Submission failed:\n${backendErrors.join("\n")}`);
+    } else {
+      alert(`❌ Submission failed: ${error.message}`);
+    }
   }
 };
 
@@ -907,7 +1026,7 @@ useEffect(() => {
             onClick={handlePreview} // Preview last added item
             style={{ marginTop: '20px', marginLeft: '20px' }}
           >
-            Preview
+        CHECK HERE
           </Button>
           </Grid>
 
@@ -1171,7 +1290,7 @@ useEffect(() => {
   value={formData.amount2}
   margin="normal"
   InputProps={{
-    readOnly: true,  // Make it read-only as it's API calculated
+    //readOnly: true,  // Make it read-only as it's API calculated
     startAdornment: <InputAdornment position="start">₹</InputAdornment>,
   }}
   variant="outlined"

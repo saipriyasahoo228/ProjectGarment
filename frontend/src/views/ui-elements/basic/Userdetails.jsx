@@ -38,22 +38,40 @@ export default function Userdetails() {
   const password2Ref = useRef(null);
   const descriptionRef = useRef(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading((prev) => ({ ...prev, fetch: true }));
-      try {
-        const response = await api.get('api/user/userdetails/'); // Replace with your actual API endpoint
-        setUserList(response.data); // Update the user list state
-        // alert(response.data.message);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading((prev) => ({ ...prev, fetch: false }));
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     setLoading((prev) => ({ ...prev, fetch: true }));
+  //     try {
+  //       const response = await api.get('api/user/userdetails/'); // Replace with your actual API endpoint
+  //       setUserList(response.data); // Update the user list state
+  //       // alert(response.data.message);
+  //     } catch (error) {
+  //       console.error("Error fetching user data:", error);
+  //     } finally {
+  //       setLoading((prev) => ({ ...prev, fetch: false }));
+  //     }
+  //   };
 
+  //   fetchUserData();
+  // }, []); // This effect runs only once when the component mounts
+
+  const fetchUserData = async () => {
+    setLoading((prev) => ({ ...prev, fetch: true }));
+    try {
+        const response = await api.get("api/user/userdetails/");
+        setUserList(response.data);
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    } finally {
+        setLoading((prev) => ({ ...prev, fetch: false }));
+    }
+};
+
+// Fetch user data on component mount
+useEffect(() => {
     fetchUserData();
-  }, []); // This effect runs only once when the component mounts
+}, []);
+
 
   const handleChange = (e) => {
     setUserDetails({
@@ -71,46 +89,139 @@ export default function Userdetails() {
     setOpen(false); // Close the dialog when "Cancel" button is clicked
   };
 
+  // const handleAddOrUpdate = async (e) => {
+  //   e.preventDefault();
+  //   setLoading({ ...loading, add: true });
+  
+  //   try {
+  //     if (editIndex !== null) {
+  //       // Update existing user
+  //       const response = await api.put(`api/user/userdetails/${userDetails.user_name}/`, userDetails);
+  //       const updatedList = [...userList];
+  //       updatedList[editIndex] = response.data; // Update with response data
+  //       setUserList(updatedList);
+  //       console.log("User updated successfully:", response.data);
+  //       alert("User updated successfully:");
+  //     } else {
+  //       // Add new user
+  //       const response = await api.post('api/user/userdetails/', userDetails);
+  //       setUserList([...userList, response.data]); // Add new user to the list
+  //       console.log("User added successfully:", response.data);
+  //       alert("User added successfully:");
+  //     }
+
+  //   } catch (error) {
+  //     console.error("Error adding/updating user:", error);
+  //   } finally {
+  //     setLoading({ ...loading, add: false });
+  //     // Reset form and close dialog
+  //     setUserDetails({
+  //       user_name: '',
+  //       fullname: '',
+  //       email: '',
+  //       contact_number: '',
+  //       role: '',
+  //       password: '',
+  //       password2: '',
+  //       description: ''
+  //     });
+  //     setOpen(false);
+  //   }
+  // };
   const handleAddOrUpdate = async (e) => {
     e.preventDefault();
-    setLoading({ ...loading, add: true });
-  
-    try {
-      if (editIndex !== null) {
-        // Update existing user
-        const response = await api.put(`api/user/userdetails/${userDetails.user_name}/`, userDetails);
-        const updatedList = [...userList];
-        updatedList[editIndex] = response.data; // Update with response data
-        setUserList(updatedList);
-        console.log("User updated successfully:", response.data);
-        alert("User updated successfully:");
-      } else {
-        // Add new user
-        const response = await api.post('api/user/userdetails/', userDetails);
-        setUserList([...userList, response.data]); // Add new user to the list
-        console.log("User added successfully:", response.data);
-        alert("User added successfully:");
-      }
+    setLoading((prev) => ({ ...prev, add: true }));
 
-    } catch (error) {
-      console.error("Error adding/updating user:", error);
-    } finally {
-      setLoading({ ...loading, add: false });
-      // Reset form and close dialog
-      setUserDetails({
-        user_name: '',
-        fullname: '',
-        email: '',
-        contact_number: '',
-        role: '',
-        password: '',
-        password2: '',
-        description: ''
-      });
-      setOpen(false);
+    // Validation rules
+    const errors = [];
+
+    const userNameRegex = /^[A-Za-z0-9_@-]+$/; // Allows letters, numbers, _, @, -
+    const fullNameRegex = /^[A-Za-z\s]+$/; // Allows letters and spaces
+    const contactNumberRegex = /^[0-9]{10}$/; // Exactly 10-digit number
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const descriptionRegex = /^[A-Za-z0-9\s_-]+$/; // Allows letters, numbers, spaces, _, -
+
+    if (!userDetails.user_name.trim()) {
+        errors.push("Username is required.");
+    } else if (!userNameRegex.test(userDetails.user_name)) {
+        errors.push("Username can only contain letters, numbers, '_', '@', and '-'.");
     }
-  };
-  
+
+    if (!userDetails.fullname.trim()) {
+        errors.push("Full Name is required.");
+    } else if (!fullNameRegex.test(userDetails.fullname)) {
+        errors.push("Full Name can only contain letters and spaces.");
+    }
+
+    if (!userDetails.contact_number.trim()) {
+        errors.push("Contact Number is required.");
+    } else if (!contactNumberRegex.test(userDetails.contact_number)) {
+        errors.push("Contact Number must be exactly 10 digits.");
+    }
+
+    if (!userDetails.email.trim()) {
+        errors.push("Email is required.");
+    } else if (!emailRegex.test(userDetails.email)) {
+        errors.push("Enter a valid email address.");
+    }
+
+    if (!userDetails.description.trim()) {
+        errors.push("Description is required.");
+    } else if (!descriptionRegex.test(userDetails.description)) {
+        errors.push("Description can only contain letters, numbers, spaces, '_', and '-'.");
+    }
+
+    if (errors.length > 0) {
+        alert("Validation Errors:\n" + errors.join("\n"));
+        setLoading((prev) => ({ ...prev, add: false }));
+        return;
+    }
+
+    try {
+        let response;
+        if (editIndex !== null) {
+            response = await api.put(`api/user/userdetails/${userDetails.user_name}/`, userDetails);
+            alert("User updated successfully.");
+        } else {
+            response = await api.post("api/user/userdetails/", userDetails);
+            alert("User added successfully.");
+        }
+
+        // ✅ Fetch the latest user list
+        fetchUserData();
+
+        // Reset form
+        setUserDetails({
+            user_name: "",
+            fullname: "",
+            email: "",
+            contact_number: "",
+            role: "",
+            password: "",
+            password2: "",
+            description: "",
+        });
+
+        setEditIndex(null);
+        setOpen(false);
+    } catch (error) {
+        console.error("Error adding/updating user:", error);
+
+        // ✅ Show backend validation errors
+        if (error.response && error.response.data) {
+            const backendErrors = Object.entries(error.response.data)
+                .map(([key, messages]) => `${key}: ${messages.join(", ")}`)
+                .join("\n");
+
+            alert(`Backend Error:\n${backendErrors}`);
+        } else {
+            alert("An unexpected error occurred. Please try again.");
+        }
+    } finally {
+        setLoading((prev) => ({ ...prev, add: false }));
+    }
+};
+
 
   const handleEdit = (index) => {
     setUserDetails(userList[index]); // Populate form with the selected user's details

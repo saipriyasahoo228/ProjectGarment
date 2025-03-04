@@ -109,53 +109,122 @@ export default function PurchaseVoucher() {
 
  
 
+  // const handleSaveItem = async () => {
+  //   const { party_name, address, item } = partyInfo;
+  //   const { voucher_number, voucher_date } = voucherInfo;
+  //   const { quantity, rate, discount_percentage, gst_percentage } = itemDetails;
+  
+  //   if (!party_name || !address || !voucher_number || !voucher_date || !quantity || !rate  || !item) {
+  //     setError('Please fill in all fields.');
+  //     return;
+  //   }
+  
+  //   const newItem = {
+  //     ...itemDetails,
+  //     party_name,
+  //     address,
+  //     item,
+  //     voucher_number,
+  //     voucher_date,
+  //   };
+  //   console.log(JSON.stringify(newItem, null, 2));
+  
+  //   try {
+  //     let response;
+  //     if (editIndex !== null) {
+  //       response = await api.put(`api/purchase/purchase-entries/${newItem.party_name}/`, newItem);
+  //     } else {
+  //       response = await api.post('api/purchase/purchase-entry/', newItem);
+  //     }
+  //     const savedItem = response.data;
+  
+  //     // Update the list with the newly saved item
+  //     if (editIndex !== null) {
+  //       const updatedItemList = itemList.map((item, index) => index === editIndex ? savedItem : item);
+  //       setItemList(updatedItemList);
+  //       setEditIndex(null);
+  //     } else {
+  //       setItemList([...itemList, savedItem]);
+  //     }
+  
+  //     // Fetch the updated data without page refresh
+  //     fetchData();
+  
+  //     resetFormFields();
+  //   } catch (error) {
+  //     console.error('Error saving data:', error);
+  //     setError('Error saving data. Please try again.');
+  //   }
+  // };
+
   const handleSaveItem = async () => {
+    setError(""); // Clear previous errors
+
     const { party_name, address, item } = partyInfo;
     const { voucher_number, voucher_date } = voucherInfo;
     const { quantity, rate, discount_percentage, gst_percentage } = itemDetails;
-  
-    if (!party_name || !address || !voucher_number || !voucher_date || !quantity || !rate || !discount_percentage || !gst_percentage || !item) {
-      setError('Please fill in all fields.');
-      return;
+
+    if (!party_name || !address || !voucher_number || !voucher_date || !quantity || !rate || !item) {
+        alert("Please fill in all fields.");
+        setError("Please fill in all fields.");
+        return;
     }
-  
+
     const newItem = {
-      ...itemDetails,
-      party_name,
-      address,
-      item,
-      voucher_number,
-      voucher_date,
+        ...itemDetails,
+        party_name,
+        address,
+        item,
+        voucher_number,
+        voucher_date,
     };
-    console.log(JSON.stringify(newItem, null, 2));
-  
+
+    console.log("Saving Item:", JSON.stringify(newItem, null, 2));
+
     try {
-      let response;
-      if (editIndex !== null) {
-        response = await api.put(`api/purchase/purchase-entries/${newItem.party_name}/`, newItem);
-      } else {
-        response = await api.post('api/purchase/purchase-entry/', newItem);
-      }
-      const savedItem = response.data;
-  
-      // Update the list with the newly saved item
-      if (editIndex !== null) {
-        const updatedItemList = itemList.map((item, index) => index === editIndex ? savedItem : item);
-        setItemList(updatedItemList);
-        setEditIndex(null);
-      } else {
-        setItemList([...itemList, savedItem]);
-      }
-  
-      // Fetch the updated data without page refresh
-      fetchData();
-  
-      resetFormFields();
+        let response;
+        if (editIndex !== null) {
+            response = await api.put(`api/purchase/purchase-entries/${newItem.party_name}/`, newItem);
+        } else {
+            response = await api.post("api/purchase/purchase-entry/", newItem);
+        }
+
+        const savedItem = response.data;
+
+        if (editIndex !== null) {
+            const updatedItemList = itemList.map((item, index) => (index === editIndex ? savedItem : item));
+            setItemList(updatedItemList);
+            setEditIndex(null);
+        } else {
+            setItemList([...itemList, savedItem]);
+        }
+
+        fetchData();
+        resetFormFields();
+
+        alert("✅ Item saved successfully!");
     } catch (error) {
-      console.error('Error saving data:', error);
-      setError('Error saving data. Please try again.');
+        console.error("Error saving data:", error);
+
+        let errorMessage = "Error saving data. Please try again.";
+        if (error.response && error.response.data) {
+            console.log("Error response data:", error.response.data);
+
+            if (error.response.data.error) {
+                const backendErrors = error.response.data.error;
+                errorMessage = Object.keys(backendErrors)
+                    .map((key) => `${key}: ${backendErrors[key].join(", ")}`)
+                    .join("\n");
+            } else if (error.response.data.detail) {
+                errorMessage = error.response.data.detail;
+            }
+        }
+
+        alert("⚠️ " + errorMessage);
+        setError(errorMessage);
     }
-  };
+};
+
   
   // Fetch function to get data from the backend
   const fetchData = async () => {
@@ -270,6 +339,7 @@ export default function PurchaseVoucher() {
               onChange={handlePartyChange}
               label="Party Name"
               name="party_name"
+              required
               disabled={loading}
               inputRef={partyNameRef}
             >
@@ -294,6 +364,7 @@ export default function PurchaseVoucher() {
             name="address"
             value={partyInfo.address}
             onChange={handlePartyChange}
+            required
             margin="normal"
             inputRef={addressRef}
           />
@@ -307,6 +378,7 @@ export default function PurchaseVoucher() {
             name="item"
             value={partyInfo.item}
             onChange={handlePartyChange}
+            required
             margin="normal"
             inputRef={itemRef}
           />
@@ -318,6 +390,7 @@ export default function PurchaseVoucher() {
             name="voucher_number"
             value={voucherInfo.voucher_number}
             onChange={handleVoucherChange}
+            required
             margin="normal"
             inputRef={voucherNumberRef}
           />
@@ -332,6 +405,7 @@ export default function PurchaseVoucher() {
             name="voucher_date"
             value={voucherInfo.voucher_date}
             onChange={handleVoucherChange}
+            required
             margin="normal"
             InputLabelProps={{ shrink: true }}
             inputRef={voucherDateRef}
@@ -344,6 +418,7 @@ export default function PurchaseVoucher() {
             name="quantity"
             value={itemDetails.quantity}
             onChange={handleItemChange}
+            required
             margin="normal"
             inputRef={quantityRef}
           />
@@ -358,6 +433,7 @@ export default function PurchaseVoucher() {
             name="rate"
             value={itemDetails.rate}
             onChange={handleItemChange}
+            required
             margin="normal"
           />
           </Grid>
@@ -430,6 +506,7 @@ export default function PurchaseVoucher() {
                <TableCell>Taxable Amount</TableCell>
                <TableCell>GST Amount</TableCell>
                <TableCell>Purchase Amount</TableCell>
+               <TableCell>Reference Voucher Number</TableCell> 
                <TableCell>Actions</TableCell>
              </TableRow>
           </TableHead>
@@ -448,6 +525,7 @@ export default function PurchaseVoucher() {
                 <TableCell>{item.taxable_amount}</TableCell>
                 <TableCell>{item.gst_amount}</TableCell>
                 <TableCell>{item.purchase_amount}</TableCell>
+                <TableCell>{item.reference_voucher_number}</TableCell>
                 <TableCell>
                   <IconButton color="secondary" onClick={() => handleOpenDialog(index)}>
                     <EditIcon />

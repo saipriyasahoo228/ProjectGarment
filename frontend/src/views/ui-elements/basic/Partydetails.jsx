@@ -39,19 +39,34 @@ export default function PartyReport() {
   const descriptionRef = useRef(null);
   const registrationnumRef = useRef(null);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await api.get('/api/user/party/'); // Replace with your actual endpoint
-        setPartyList(response.data.data);
-        // alert(response.data.message);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchItems = async () => {
+  //     try {
+  //       const response = await api.get('/api/user/party/'); // Replace with your actual endpoint
+  //       setPartyList(response.data.data);
+  //       // alert(response.data.message);
+  //     } catch (error) {
+  //       console.error("Error fetching items:", error);
+  //     }
+  //   };
 
-    fetchItems(); // Fetch categories when component mounts
-  }, []);
+  //   fetchItems(); // Fetch categories when component mounts
+  // }, []);
+  const fetchItems = async () => {
+    setLoading((prev) => ({ ...prev, fetch: true }));
+    try {
+        const response = await api.get("/api/user/party/");
+        setPartyList(response.data.data);
+    } catch (error) {
+        console.error("Error fetching items:", error);
+    } finally {
+        setLoading((prev) => ({ ...prev, fetch: false }));
+    }
+};
+// ✅ Call `fetchItems` in `useEffect` when the component mounts
+useEffect(() => {
+  fetchItems();
+}, []);
 
   const handleChange = (e) => {
     setPartyDetails({
@@ -69,41 +84,185 @@ export default function PartyReport() {
     setOpen(false); // Close the dialog when "Cancel" button is clicked
   };
 
-  const handleAddOrUpdate = async (e) => {
-    e.preventDefault();
-    setLoading({ ...loading, add: true });
+  // const handleAddOrUpdate = async (e) => {
+  //   e.preventDefault();
+  //   setLoading({ ...loading, add: true });
 
-    try {
+  //   try {
+  //     if (editIndex !== null) {
+  //       // Update logic
+  //       const updatedParty = await api.put(`/api/user/party/${partyDetails.party_name}/`, partyDetails);
+  //       const updatedList = [...partyList];
+  //       updatedList[editIndex] = updatedParty.data;
+  //       alert(updatedParty.data.message);
+  //       setPartyList(updatedList);
+  //     } else {
+  //       // Add logic
+  //       const newParty = await api.post('/api/user/party/', partyDetails);
+  //       setPartyList([...partyList, newParty.data]);
+  //       alert(newParty.data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error adding/updating party:', error);
+  //   } finally {
+  //     setLoading({ ...loading, add: false });
+  //     setPartyDetails({
+  //       party_name: '',
+  //       gst_number: '',
+  //       registration_number:'',
+  //       party_type: '',
+  //       phone: '',
+  //       email: '',
+  //       address: '',
+  //       description: ''
+  //     });
+  //     setOpen(false);
+  //   }
+  // };
+
+//   const handleAddOrUpdate = async (e) => {
+//     e.preventDefault();
+//     setLoading((prev) => ({ ...prev, add: true }));
+
+//     try {
+//         if (editIndex !== null) {
+//             // Update logic
+//             const updatedParty = await api.put(`/api/user/party/${partyDetails.party_name}/`, partyDetails);
+//             alert(updatedParty.data.message);
+//         } else {
+//             // Add logic
+//             const newParty = await api.post("/api/user/party/", partyDetails);
+//             alert(newParty.data.message);
+//         }
+
+//         // ✅ Call `fetchItems` after add/update to get the latest data
+//         fetchItems();
+//     } catch (error) {
+//         console.error("Error adding/updating party:", error);
+//     } finally {
+//         setLoading((prev) => ({ ...prev, add: false }));
+//         setPartyDetails({
+//             party_name: "",
+//             gst_number: "",
+//             registration_number: "",
+//             party_type: "",
+//             phone: "",
+//             email: "",
+//             address: "",
+//             description: "",
+//         });
+//         setOpen(false);
+//     }
+// };
+
+const handleAddOrUpdate = async (e) => {
+  e.preventDefault();
+  setLoading((prev) => ({ ...prev, add: true }));
+
+  // Validation rules
+  const errors = [];
+
+  const partyNameRegex = /^[A-Za-z-\s]+$/;
+  const gstNumberRegex = /^[A-Za-z0-9]+$/;
+  const registrationNumberRegex = /^[A-Za-z0-9]+$/;
+  const phoneRegex = /^[0-9]{10}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const addressAndDescriptionRegex = /^[A-Za-z0-9-\s,]+$/;
+
+  if (!partyDetails.party_name.trim()) {
+      errors.push("Party Name is required.");
+  } else if (!partyNameRegex.test(partyDetails.party_name)) {
+      errors.push("Party Name can only contain letters, hyphens (-), and spaces.");
+  }
+
+  if (!partyDetails.gst_number.trim()) {
+      errors.push("GST Number is required.");
+  } else if (!gstNumberRegex.test(partyDetails.gst_number)) {
+      errors.push("GST Number can only contain letters and numbers.");
+  }
+
+  if (!partyDetails.registration_number.trim()) {
+      errors.push("Registration Number is required.");
+  } else if (!registrationNumberRegex.test(partyDetails.registration_number)) {
+      errors.push("Registration Number can only contain letters and numbers.");
+  }
+
+  if (!partyDetails.party_type.trim()) {
+      errors.push("Party Type is required.");
+  }
+
+  if (!partyDetails.phone.trim()) {
+      errors.push("Phone Number is required.");
+  } else if (!phoneRegex.test(partyDetails.phone)) {
+      errors.push("Phone Number must be exactly 10 digits.");
+  }
+
+  if (!partyDetails.email.trim()) {
+      errors.push("Email is required.");
+  } else if (!emailRegex.test(partyDetails.email)) {
+      errors.push("Enter a valid email address.");
+  }
+
+  if (partyDetails.address.trim() && !addressAndDescriptionRegex.test(partyDetails.address)) {
+      errors.push("Address can only contain letters, numbers, spaces, hyphens (-), and commas (,). ");
+  }
+
+  if (partyDetails.description.trim() && !addressAndDescriptionRegex.test(partyDetails.description)) {
+      errors.push("Description can only contain letters, numbers, spaces, hyphens (-), and commas (,). ");
+  }
+
+  if (errors.length > 0) {
+      alert("Validation Errors:\n" + errors.join("\n"));
+      setLoading((prev) => ({ ...prev, add: false }));
+      return;
+  }
+
+  try {
       if (editIndex !== null) {
-        // Update logic
-        const updatedParty = await api.put(`/api/user/party/${partyDetails.party_name}/`, partyDetails);
-        const updatedList = [...partyList];
-        updatedList[editIndex] = updatedParty.data;
-        alert(updatedParty.data.message);
-        setPartyList(updatedList);
+          const updatedParty = await api.put(`/api/user/party/${partyDetails.party_name}/`, partyDetails);
+          alert(updatedParty.data.message);
       } else {
-        // Add logic
-        const newParty = await api.post('/api/user/party/', partyDetails);
-        setPartyList([...partyList, newParty.data]);
-        alert(newParty.data.message);
+          const newParty = await api.post("/api/user/party/", partyDetails);
+          alert(newParty.data.message);
       }
-    } catch (error) {
-      console.error('Error adding/updating party:', error);
-    } finally {
-      setLoading({ ...loading, add: false });
+
+      fetchItems();
+  } catch (error) {
+      console.error("Error adding/updating party:", error);
+
+      if (error.response && error.response.data) {
+          const backendErrors = error.response.data.error; // Extract backend error object
+          let errorMessages = "";
+
+          if (typeof backendErrors === "string") {
+              errorMessages = backendErrors;
+          } else {
+              for (const [field, messages] of Object.entries(backendErrors)) {
+                  errorMessages += `${field.toUpperCase()}: ${messages.join(", ")}\n`;
+              }
+          }
+
+          alert(`Backend Validation Errors:\n${errorMessages}`);
+      } else {
+          alert("An unknown error occurred.");
+      }
+  } finally {
+      setLoading((prev) => ({ ...prev, add: false }));
       setPartyDetails({
-        party_name: '',
-        gst_number: '',
-        registration_number:'',
-        party_type: '',
-        phone: '',
-        email: '',
-        address: '',
-        description: ''
+          party_name: "",
+          gst_number: "",
+          registration_number: "",
+          party_type: "",
+          phone: "",
+          email: "",
+          address: "",
+          description: "",
       });
       setOpen(false);
-    }
-  };
+  }
+};
+
+
 
   const handleEdit = (index) => {
     setPartyDetails(partyList[index]); // Populate form with the selected party's details
@@ -285,7 +444,7 @@ export default function PartyReport() {
                 value={partyDetails.address}
                 onChange={handleChange}
                 margin="normal"
-                required
+                
                 inputRef={addressRef}
                 onKeyDown={(e) => handleKeyDown(e, descriptionRef)}
               />
@@ -347,6 +506,7 @@ export default function PartyReport() {
               <TableCell>GST Number</TableCell>
               <TableCell>Registraion No.</TableCell>
               <TableCell>Address</TableCell>
+              <TableCell>Description</TableCell>
               <TableCell>Actions</TableCell>
               <TableCell>
                                         <IconButton color="primary" onClick={generatePartyPDF}>
@@ -365,6 +525,7 @@ export default function PartyReport() {
                 <TableCell>{party.gst_number}</TableCell>
                 <TableCell>{party.registration_number}</TableCell>
                 <TableCell>{party.address}</TableCell>
+                <TableCell>{party.description}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleEdit(index)} color="secondary">
                     <Edit />

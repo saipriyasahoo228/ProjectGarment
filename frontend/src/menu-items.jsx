@@ -491,7 +491,7 @@ const getFirstAccessibleModuleUrl = (modules, isAdmin) => {
       }
     }
   }
-  return " ";
+  return "/auth/signin-1 ";
 };
 
 

@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'build', // Change output directory from 'dist' to 'build'
     },
-    base: "/garmentproject/",
+    base: "/ProjectGarment/",
     plugins: [react(), jsconfigPaths()]
   };
 });

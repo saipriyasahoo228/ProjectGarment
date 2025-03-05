@@ -470,7 +470,7 @@ const fetchUserData = async (userName) => {
 const getFirstAccessibleModuleUrl = (modules, isAdmin) => {
   if (isAdmin) {
     console.log("Admin detected, redirecting to Dashboard.");
-    return "/garmentproject/#/app/dashboard/default";
+    return "/ProjectGarment/#/app/dashboard/default";
   } else {
     const moduleNames = modules.map((mod) => mod.name);
     console.log("User has access to modules:", moduleNames);
@@ -478,13 +478,13 @@ const getFirstAccessibleModuleUrl = (modules, isAdmin) => {
       for (const item of group.children || []) {
         // Check if the item is allowed and has a URL
         if (moduleNames.includes(item.title) && item.url) {
-          return `/garmentproject/#${item.url}`;
+          return `/ProjectGarment/#${item.url}`;
         }
         // Otherwise, check in subitems
         if (item.children) {
           for (const subItem of item.children) {
             if (moduleNames.includes(subItem.title) && subItem.url) {
-              return `/garmentproject/#${subItem.url}`;
+              return `/ProjectGarment/#${subItem.url}`;
             }
           }
         }
@@ -498,7 +498,7 @@ const getFirstAccessibleModuleUrl = (modules, isAdmin) => {
 // ✅ Redirect user to the first available module
 const redirectToFirstModule = (user) => {
   const firstModuleUrl = user.is_admin
-    ? "/garmentproject/#/app/dashboard/default"
+    ? "/ProjectGarment/#/app/dashboard/default"
     : getFirstAccessibleModuleUrl(user.modules, user.is_admin);
   // Overwrite any previously stored value
   localStorage.setItem("redirectAfterLogin", firstModuleUrl);
@@ -515,7 +515,7 @@ window.addEventListener("load", () => {
       // If the current hash is empty, just "#" or starts with "#/auth", redirect to dashboard.
       if (!currentHash || currentHash === "#" || currentHash.startsWith("#/auth")) {
         console.log("Admin detected on load from an auth route, redirecting to dashboard.");
-        window.location.href = "/garmentproject/#/app/dashboard/default";
+        window.location.href = "/ProjectGarment/#/app/dashboard/default";
       } else {
         console.log("Admin already on a valid route:", currentHash);
       }
@@ -534,7 +534,7 @@ window.addEventListener("load", () => {
 
 // For admin users: always redirect to the dashboard
 export const redirectToAdminDashboard = () => {
-  const adminUrl = "/garmentproject/#/app/dashboard/default";
+  const adminUrl = "/ProjectGarment/#/app/dashboard/default";
   localStorage.setItem("redirectAfterLogin", adminUrl);
   console.log("Redirecting admin user to:", adminUrl);
   window.location.href = adminUrl;

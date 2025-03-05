@@ -490,23 +490,103 @@ export default function RoleForm() {
   const [modules, setModules] = useState([]);  // Store module data, initially an empty array
   
 
-  useEffect(() => {
-    // Fetch modules from the API using axios.get
-    api.get('api/garmentmodule/modules/')
-      .then((response) => {
-        const fetchedModules = response.data.data;
+  // useEffect(() => {
+  //   // Fetch modules from the API using axios.get
+  //   api.get('api/garmentmodule/modules/')
+  //     .then((response) => {
+  //       const fetchedModules = response.data.data;
 
-        if (Array.isArray(fetchedModules)) {
-          setModules(fetchedModules);
-        } else {
-          console.error('API response is not an array:', fetchedModules);
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching modules:', error);
-      });
-  }, []);
+  //       if (Array.isArray(fetchedModules)) {
+  //         setModules(fetchedModules);
+  //       } else {
+  //         console.error('API response is not an array:', fetchedModules);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error fetching modules:', error);
+  //     });
+  // }, []);
+// 🔹 Function to fetch modules
+const fetchModules = async () => {
+  try {
+    const response = await api.get("api/garmentmodule/modules/");
+    if (Array.isArray(response.data.data)) {
+      setModules(response.data.data);
+    } else {
+      console.error("API response is not an array:", response.data.data);
+    }
+  } catch (error) {
+    console.error("Error fetching modules:", error);
+  }
+};
 
+// 🔹 Call fetchModules when component mounts
+useEffect(() => {
+  fetchModules();
+}, []);
+
+// 🔹 Handle adding a role (Instant UI Update)
+const handleAddRole = async () => {
+  try {
+    const response = await api.post("api/userrole/role-based-user/", {
+      role: roleDetails.roleName,
+      user_name: roleDetails.userName,
+      modules: roleDetails.selectedSubModules.map((name) => ({ name })),
+      is_active: roleDetails.status === "Active",
+    });
+
+    console.log("✅ Added successfully:", response.data);
+
+    // 🔥 Update `modules` state **immediately** before fetching
+    setModules((prevModules) => [
+      ...prevModules,
+      ...roleDetails.selectedSubModules.map((name) => ({ name })),
+    ]);
+
+    // 🔄 Fetch the latest data from the API
+    await fetchModules();
+
+    // Reset form after adding
+    handleClose();
+  } catch (error) {
+    console.error("❌ Error adding role:", error);
+  }
+};
+
+// 🔹 Handle deleting a user (Instant UI Update)
+const handleDelete = async () => {
+  try {
+    if (!roleDetails.userName) {
+      console.error("⚠ No user selected for deletion");
+      return;
+    }
+
+    console.log("🗑 Deleting user:", roleDetails.userName);
+
+    await api.delete(`api/userrole/role-based-user/${roleDetails.userName}/delete/`);
+
+    console.log("✅ User deleted successfully");
+
+    // 🔥 Instantly remove deleted user from modules before fetching
+    setModules((prevModules) => prevModules.filter((mod) => mod.name !== roleDetails.userName));
+
+    // 🔄 Fetch the latest data from the API
+    await fetchModules();
+
+    // Close delete confirmation modal
+    setConfirmDeleteOpen(false);
+
+    // Reset roleDetails state
+    setRoleDetails({
+      roleName: "",
+      userName: "",
+      selectedSubModules: [],
+      status: "Active",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting user:", error);
+  }
+};
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRoleDetails({
@@ -543,23 +623,23 @@ export default function RoleForm() {
 
 
 
-const handleAddRole = async () => {
-  try {
-      const response = await api.post('api/userrole/role-based-user/', {
-          role: roleDetails.roleName,
-          user_name: roleDetails.userName,
-          modules: roleDetails.selectedSubModules.map((name) => ({ name })), 
-          is_active: roleDetails.status === "Active",
-      });
+// const handleAddRole = async () => {
+//   try {
+//       const response = await api.post('api/userrole/role-based-user/', {
+//           role: roleDetails.roleName,
+//           user_name: roleDetails.userName,
+//           modules: roleDetails.selectedSubModules.map((name) => ({ name })), 
+//           is_active: roleDetails.status === "Active",
+//       });
 
-      console.log("Added successfully:", response.data);
+//       console.log("Added successfully:", response.data);
 
-      // Reset form after adding
-      handleClose();
-  } catch (error) {
-      console.error("Error adding role:", error);
-  }
-};
+//       // Reset form after adding
+//       handleClose();
+//   } catch (error) {
+//       console.error("Error adding role:", error);
+//   }
+// };
 
 
 
@@ -651,34 +731,34 @@ const handleEdit = async (index) => {
       console.error("Error fetching role data:", error);
   }
 };
-const handleDelete = async () => {
-  try {
-      if (!roleDetails.userName) {
-          console.error("⚠ No user selected for deletion");
-          return;
-      }
+// const handleDelete = async () => {
+//   try {
+//       if (!roleDetails.userName) {
+//           console.error("⚠ No user selected for deletion");
+//           return;
+//       }
 
-      console.log("🗑 Deleting user:", roleDetails.userName);
+//       console.log("🗑 Deleting user:", roleDetails.userName);
 
-      await api.delete(`api/userrole/role-based-user/${roleDetails.userName}/delete/`);
+//       await api.delete(`api/userrole/role-based-user/${roleDetails.userName}/delete/`);
       
-      console.log("✅ User deleted successfully");
+//       console.log("✅ User deleted successfully");
 
-      // Close delete confirmation modal
-      setConfirmDeleteOpen(false);
+//       // Close delete confirmation modal
+//       setConfirmDeleteOpen(false);
 
-      // Reset roleDetails state
-      setRoleDetails({
-          roleName: "",
-          userName: "",
-          selectedSubModules: [],
-          status: "Active",
-      });
+//       // Reset roleDetails state
+//       setRoleDetails({
+//           roleName: "",
+//           userName: "",
+//           selectedSubModules: [],
+//           status: "Active",
+//       });
 
-  } catch (error) {
-      console.error("❌ Error deleting user:", error);
-  }
-};
+//   } catch (error) {
+//       console.error("❌ Error deleting user:", error);
+//   }
+// };
 
 
 
@@ -783,7 +863,7 @@ const handleDelete = async () => {
 </FormControl>
 
               {/* Status (Radio button) */}
-              <FormControl component="fieldset" margin="normal">
+              {/* <FormControl component="fieldset" margin="normal">
                 <FormLabel component="legend">Status</FormLabel>
                 <RadioGroup
                   name="status"
@@ -793,7 +873,7 @@ const handleDelete = async () => {
                   <FormControlLabel value="Active" control={<Radio />} label="Active" />
                   <FormControlLabel value="Inactive" control={<Radio />} label="Inactive" />
                 </RadioGroup>
-              </FormControl>
+              </FormControl> */}
             </form>
           </Paper>
         </DialogContent>
@@ -821,7 +901,7 @@ const handleDelete = async () => {
         <TableCell>Role Name</TableCell>
         <TableCell>User Name</TableCell>
         <TableCell>Modules & Sub-Modules</TableCell>
-        <TableCell>Status</TableCell>
+        {/* <TableCell>Status</TableCell> */}
         <TableCell>Actions</TableCell>
       </TableRow>
     </TableHead>
@@ -844,7 +924,7 @@ const handleDelete = async () => {
               </div>
             ))}
           </TableCell>
-          <TableCell>
+          {/* <TableCell>
             <span
               style={{
                 color: role.is_active ? "green" : "red",
@@ -853,7 +933,7 @@ const handleDelete = async () => {
             >
               {role.is_active ? "Active" : "Inactive"}
             </span>
-          </TableCell>
+          </TableCell> */}
           <TableCell>
             <IconButton color="secondary" onClick={() => handleEdit(index)}>
               <Edit />

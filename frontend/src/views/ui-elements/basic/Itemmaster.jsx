@@ -152,7 +152,7 @@ const handleAddOrUpdate = async (e) => {
   try {
     let response;
     if (editIndex !== null) {
-      response = await api.put(`/api/user/items/${itemDetails.item_code}/`, itemDetails);
+      response = await api.put(`/api/user/items/update/${itemDetails.item_code}/`, itemDetails);
     } else {
       response = await api.post('/api/user/items-post/', itemDetails);
     }
@@ -253,7 +253,7 @@ const handleAddOrUpdate = async (e) => {
 
   const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/api/user/items/${itemDetails.item_code}/`);
+      await api.delete(`/api/user/items/delete/${itemDetails.item_code}/`);
       setItemList(itemList.filter((_, i) => i !== deleteIndex));
       alert("Item deleted successfully!");
     } catch (error) {

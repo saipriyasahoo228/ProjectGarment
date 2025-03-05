@@ -520,16 +520,99 @@ class ItemCreateOrUpdateView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)   
     
     
+    # def put(self, request, item_code):
+    #     """
+    #     Update an existing item by item_code.
+    #     Allow updating individual fields.
+    #     """
+    #     try:
+    #         item = Item.objects.get(item_code=item_code)  # Get the specific item by item_code
+    #         serializer = ItemSerializer(item, data=request.data, partial=True)  # Allow partial updates
+    #         if serializer.is_valid():  # Validate the serializer
+    #             serializer.save()  # Save the updated item
+    #             return Response({
+    #                 "message": "Item updated successfully!",
+    #                 "data": serializer.data
+    #             }, status=status.HTTP_200_OK)
+    #         return Response({
+    #             "message": "Item update failed.",
+    #             "errors": serializer.errors
+    #         }, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
+    #     except Item.DoesNotExist:
+    #         return Response({
+    #             "message": "Item not found."
+    #         }, status=status.HTTP_404_NOT_FOUND)
+
+    # def delete(self, request, item_code):
+    #     """
+    #     Delete an item by item_code.
+    #     """
+    #     try:
+    #         item = Item.objects.get(item_code=item_code)  # Get the specific item by item_code
+    #         item.delete()  # Delete the item
+    #         return Response({
+    #             "message": "Item deleted successfully!"
+    #         }, status=status.HTTP_204_NO_CONTENT)  # Return 204 No Content
+    #     except Item.DoesNotExist:
+    #         return Response({
+    #             "message": "Item not found."
+    #         }, status=status.HTTP_404_NOT_FOUND)
+class ItemUpdateStockView(APIView):
+    """
+    Update stock quantity for an existing item.
+    """
+    def post(self, request):
+        item_code = request.data.get('item_code')
+
+        if not item_code:
+            return Response({
+                "message": "Item code is required for updating stock."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        item = Item.objects.filter(item_code=item_code).first()
+
+        if not item:
+            return Response({
+                "message": "Item not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        sizes_data = request.data.get('sizes', [])
+        for size_data in sizes_data:
+            size_instance = ItemSize.objects.filter(item=item, size=size_data['size']).first()
+
+            if size_instance:
+                StockHistory.objects.create(
+                    item_size=size_instance,
+                    change_quantity=size_data['stock_quantity'],
+                    change_date=timezone.now().date()
+                )
+
+                size_instance.stock_quantity = F('stock_quantity') + size_data['stock_quantity']
+                size_instance.save()
+            else:
+                ItemSize.objects.create(
+                    item=item,
+                    size=size_data['size'],
+                    stock_quantity=size_data['stock_quantity'],
+                    unit_price=size_data['unit_price']
+                )
+
+        return Response({
+            "message": "Stock quantities updated successfully!",
+            "data": ItemSerializer(item).data
+        }, status=status.HTTP_200_OK)
+
+
+class ItemUpdateView(APIView):
+    """
+    Update an existing item by item_code.
+    """
     def put(self, request, item_code):
-        """
-        Update an existing item by item_code.
-        Allow updating individual fields.
-        """
         try:
-            item = Item.objects.get(item_code=item_code)  # Get the specific item by item_code
-            serializer = ItemSerializer(item, data=request.data, partial=True)  # Allow partial updates
-            if serializer.is_valid():  # Validate the serializer
-                serializer.save()  # Save the updated item
+            item = Item.objects.get(item_code=item_code)
+            serializer = ItemSerializer(item, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
                 return Response({
                     "message": "Item updated successfully!",
                     "data": serializer.data
@@ -537,27 +620,28 @@ class ItemCreateOrUpdateView(APIView):
             return Response({
                 "message": "Item update failed.",
                 "errors": serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)  # Return validation errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Item.DoesNotExist:
             return Response({
                 "message": "Item not found."
             }, status=status.HTTP_404_NOT_FOUND)
 
+
+class ItemDeleteView(APIView):
+    """
+    Delete an item by item_code.
+    """
     def delete(self, request, item_code):
-        """
-        Delete an item by item_code.
-        """
         try:
-            item = Item.objects.get(item_code=item_code)  # Get the specific item by item_code
-            item.delete()  # Delete the item
+            item = Item.objects.get(item_code=item_code)
+            item.delete()
             return Response({
                 "message": "Item deleted successfully!"
-            }, status=status.HTTP_204_NO_CONTENT)  # Return 204 No Content
+            }, status=status.HTTP_204_NO_CONTENT)
         except Item.DoesNotExist:
             return Response({
                 "message": "Item not found."
             }, status=status.HTTP_404_NOT_FOUND)
-
 
 class ItemReportViewSet(APIView):
     #SearchQuery 

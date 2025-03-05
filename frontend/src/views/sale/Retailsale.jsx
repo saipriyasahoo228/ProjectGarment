@@ -692,7 +692,7 @@ const handlePrint = () => {
             </div>
             <div class="right-info">
               <p><strong>Date:</strong> ${currentDateTime}</p>
-              <p><strong>Invoice Number:</strong> ${formData.invoiceNumber || 'N/A'}</p>
+              <p><strong>Invoice Number:</strong> ${billNumberFromResponse || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -741,8 +741,8 @@ const handlePrint = () => {
 
         <div class="section">
           <h2>Payment and Narration</h2>
-          <p><strong>Payment Method1:</strong> ${formData.paymentMethod1} ₹ ${formData.paymentAmount1 || 0}</p>
-          <p><strong>Payment Method2:</strong> ${formData.paymentMethod2} ₹ ${formData.paymentAmount2 || 0}</p>
+          <p><strong>Payment Method1:</strong> ${formData.paymentMethod1} ₹ ${formData.amount1 || 0}</p>
+          <p><strong>Payment Method2:</strong> ${formData.paymentMethod2} ₹ ${formData.amount2 || 0}</p>
           <p><strong>Narration:</strong> ${formData.narration}</p>
         </div>
         <div class="section">

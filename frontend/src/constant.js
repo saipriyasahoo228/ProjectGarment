@@ -1,4 +1,4 @@
-let API_URI = 'http://127.0.0.1:8000/';
+let API_URI = 'https://garment002.pythonanywhere.com/';
 if (process.env.NODE_ENV === 'development') {
   API_URI = 'http://127.0.0.1:8000/';
 }

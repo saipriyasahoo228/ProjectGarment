@@ -1,6 +1,6 @@
  
 from django.urls import path,include
-from .views import UserLoginView,CategoryView,CompanyViewSet,ItemViewSet,ItemCodeViewSet,TokenRefreshView,DesignViewSet,PartyViewSet,TaxViewSet,UserRegisterView,FinancialYearViewSet,CategorySubCategoryView,ItemReportViewSet,ItemCreateOrUpdateView
+from .views import UserLoginView,CategoryView,CompanyViewSet,ItemViewSet,ItemCodeViewSet,TokenRefreshView,DesignViewSet,PartyViewSet,TaxViewSet,UserRegisterView,FinancialYearViewSet,CategorySubCategoryView,ItemReportViewSet,ItemCreateOrUpdateView,ItemUpdateStockView,ItemUpdateView,ItemDeleteView
 
 
 urlpatterns = [
@@ -25,9 +25,13 @@ urlpatterns = [
     path('categories/<str:category_code>/', CategoryView.as_view(), name='category-detail'),
 
     # Item URLs
+    path('items/<str:item_code>/', ItemViewSet.as_view(), name='item-list'),  # List items and create a new item
     path('items/', ItemViewSet.as_view(), name='item-list'),  # List items and create a new item
     path('items-post/', ItemCreateOrUpdateView.as_view(), name='item-list'),  # List items and create a new item
-    path('items/<str:item_code>/', ItemCreateOrUpdateView.as_view(), name='item-detail'),  # Retrieve, update, or delete an item by ID
+    # path('items/<str:item_code>/', ItemCreateOrUpdateView.as_view(), name='item-detail'),  # Retrieve, update, or delete an item by ID
+    
+    path('items/update/<str:item_code>/', ItemUpdateView.as_view(), name='item-update'),
+    path('items/delete/<str:item_code>/', ItemDeleteView.as_view(), name='item-delete'),
     path('items/codes/', ItemCodeViewSet.as_view(), name='item-code-name-list'),  # New endpoint
     path('item-report/',ItemReportViewSet.as_view(),name='item-report'),
     

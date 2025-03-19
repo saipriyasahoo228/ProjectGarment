@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useRef} from 'react';
 import {
   TextField,
   Button,
@@ -42,7 +42,20 @@ export default function StockEntry() {
   const [selectedItem, setSelectedItem] = useState('');
   const [subCategoryName, setSubCategoryName] = useState('');
   
-  
+  const quantityRef = useRef(null);
+  const itemPriceRef = useRef(null);
+  const itemSizeRef = useRef(null);
+  const shopNameRef = useRef(null);
+
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      if (nextRef?.current) {
+        nextRef.current.focus(); // Move focus to the next input field
+      }
+    }
+  };
 
 
   // Fetch stock entries and categories on component mount
@@ -108,56 +121,6 @@ export default function StockEntry() {
   };
 
   
-
-  // const handleModalSubmit = () => {
-  //   // Check if all required fields are filled
-  //   if (!quantity || !selectedItem  || !itemSize || !shopName || !categoryName || !subCategoryName) {
-  //     setError('Please fill in all fields.');
-  //     return;
-  //   }
-  
-  //   // Create the new entry object
-  //   const newEntry = {
-  //     item_name: selectedItem ,
-  //     quantity: parseInt(quantity, 10),
-  //     item_price: parseFloat(itemPrice),
-  //     item_size: itemSize,
-  //     shop_name: shopName,
-  //     category_name: categoryName,
-  //     sub_category: subCategoryName, // Include sub_category
-  //   };
-  
-  //   // Print the newEntry object in the console
-  //   console.log('New entry data:', newEntry);
-  
-  //   // Send the data to the API
-  //   api
-  //     .post('api/barcode/code/', newEntry)
-  //     .then((response) => {
-  //       setStockEntries([...stockEntries, response.data]);
-  //       resetForm();
-  
-  //       // Show success alert
-  //       alert('Barcode is created successfully !');
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error in barcoding:', error);
-  //       alert('Error in barcoding. Please try again.');
-  //     });
-  // };
-  // const resetForm = () => {
-  //   setSelectedItem('');
-  //   setBarcode('');
-  //   setQuantity('');
-  //   setItemSize('');
-  //   setShopName('');
-  //   setItemPrice('');
-  //   setCategoryName('');
-  //   setItemName('');
-  //   setSubCategoryName('');
-  //   setError('');
-  //   setOpenModal(false);
-  // };
 
 
   const validateInputs = () => {
@@ -350,10 +313,35 @@ export default function StockEntry() {
 </FormControl>
 
 
-          <TextField label="Quantity" type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} margin="normal" fullWidth />
-          <TextField label="Item Price" value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} margin="normal" fullWidth />
-          <TextField label="Item Size" value={itemSize} onChange={(e) => setItemSize(e.target.value)} margin="normal" fullWidth />
-          <TextField label="Shop Name" value={shopName} onChange={(e) => setShopName(e.target.value)} margin="normal" fullWidth />
+          <TextField 
+          label="Quantity" 
+          type="number" 
+          value={quantity} onChange={(e) => setQuantity(e.target.value)} 
+          margin="normal" 
+          inputRef={quantityRef}
+          onKeyDown={(e) => handleKeyDown(e, itemPriceRef)}
+          fullWidth />
+          <TextField 
+          label="Item Price" 
+          value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} 
+          margin="normal" 
+          inputRef={itemPriceRef}
+        onKeyDown={(e) => handleKeyDown(e, itemSizeRef)}
+          fullWidth />
+          <TextField 
+          label="Item Size" 
+          value={itemSize} onChange={(e) => setItemSize(e.target.value)} 
+          margin="normal" 
+          inputRef={itemSizeRef}
+          onKeyDown={(e) => handleKeyDown(e, shopNameRef)}
+          fullWidth />
+          <TextField l
+          label="Shop Name" 
+          value={shopName} onChange={(e) => setShopName(e.target.value)} 
+          margin="normal" 
+          inputRef={shopNameRef}
+        onKeyDown={(e) => handleKeyDown(e, null)} // Last field, no nextRef
+          fullWidth />
 
           <Button onClick={handleModalSubmit} variant="contained" color="secondary" sx={{ mt: 2 }}>
             Save

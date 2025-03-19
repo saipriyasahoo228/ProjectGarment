@@ -174,12 +174,21 @@ const fetchCompanyList = async () => {
   
   
 
-  const handleKeyDown = (e, ref) => {
-    if (e.key === 'Enter') {
-      ref.current.focus();
+  // const handleKeyDown = (e, ref) => {
+  //   if (e.key === 'Enter') {
+  //     ref.current.focus();
+  //   }
+  // };
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      if (nextRef?.current) {
+        nextRef.current.focus(); // Move focus to the next field
+      }
     }
   };
-
+  
   const downloadPDF = () => {
     const doc = new jsPDF();
     doc.text("Company List", 14, 15);

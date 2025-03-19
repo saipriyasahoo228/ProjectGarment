@@ -38,6 +38,18 @@ export default function PurchaseVoucher() {
   const voucherNumberRef = useRef(null);
   const voucherDateRef = useRef(null);
   const quantityRef = useRef(null);
+  const rateRef = useRef(null);
+  const discountRef = useRef(null);
+  const gstRef = useRef(null);
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      if (nextRef && nextRef.current) {
+        nextRef.current.focus(); // Move focus to the next input field
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,6 +76,7 @@ export default function PurchaseVoucher() {
     fetchParties();
     fetchData();
   }, []);
+
 
   const handlePartyChange = (event) => {
     const { name, value } = event.target;
@@ -342,6 +355,7 @@ export default function PurchaseVoucher() {
               required
               disabled={loading}
               inputRef={partyNameRef}
+              onKeyDown={(e) => handleKeyDown(e, itemRef)}
             >
               {loading ? (
                 <MenuItem disabled>
@@ -367,6 +381,7 @@ export default function PurchaseVoucher() {
             required
             margin="normal"
             inputRef={addressRef}
+            onKeyDown={(e) => handleKeyDown(e, voucherNumberRef)}
           />
           </Grid>
           </Grid>
@@ -381,6 +396,7 @@ export default function PurchaseVoucher() {
             required
             margin="normal"
             inputRef={itemRef}
+            onKeyDown={(e) => handleKeyDown(e, voucherDateRef)}
           />
           </Grid>
           <Grid item xs={6}>
@@ -393,6 +409,7 @@ export default function PurchaseVoucher() {
             required
             margin="normal"
             inputRef={voucherNumberRef}
+            onKeyDown={(e) => handleKeyDown(e, quantityRef)}
           />
           </Grid>
           </Grid>
@@ -409,6 +426,7 @@ export default function PurchaseVoucher() {
             margin="normal"
             InputLabelProps={{ shrink: true }}
             inputRef={voucherDateRef}
+            onKeyDown={(e) => handleKeyDown(e, rateRef)}
           />
           </Grid>
           <Grid item xs={6}>
@@ -421,6 +439,7 @@ export default function PurchaseVoucher() {
             required
             margin="normal"
             inputRef={quantityRef}
+            onKeyDown={(e) => handleKeyDown(e, discountRef)}
           />
           </Grid>
           </Grid>
@@ -435,6 +454,8 @@ export default function PurchaseVoucher() {
             onChange={handleItemChange}
             required
             margin="normal"
+            inputRef={rateRef}
+            onKeyDown={(e) => handleKeyDown(e, gstRef)}
           />
           </Grid>
           <Grid item xs={6}>

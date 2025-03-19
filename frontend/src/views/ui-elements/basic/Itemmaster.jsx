@@ -31,7 +31,18 @@ export default function ItemMaster() {
   const [editIndex, setEditIndex] = useState(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const fieldRefs = useRef([]);
+  const fieldRefs = useRef([]);  
+  
+  const itemRef = useRef(null);
+  const itemcodeRef = useRef(null);
+  const categoryRef = useRef(null);
+  const subcategoryRef = useRef(null);
+  const hsnRef = useRef(null);
+  const unitpriceRef = useRef(null);
+  const quantityRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const sizesRef = useRef(null);
+  
 
   
 
@@ -64,30 +75,6 @@ export default function ItemMaster() {
 
 
   
-
-//   const handleAddOrUpdate = async (e) => {
-//     e.preventDefault();
-//     setLoading({ ...loading, add: true });
-
-//     try {
-//         if (editIndex !== null) {
-//             const response = await api.put(`/api/user/items/${itemDetails.item_code}/`, itemDetails);
-//             alert(response.data.message);
-//         } else {
-//             const response = await api.post('/api/user/items-post/', itemDetails);
-//             alert(response.data.message);
-//         }
-
-//         // 🔹 Fetch updated data immediately
-//         await fetchItems();  
-//     } catch (error) {
-//         console.error("Error adding/updating item:", error);
-//         alert("Error adding/updating item:", error);
-//     } finally {
-//         setLoading({ ...loading, add: false });
-//         handleClose();
-//     }
-// };
 
 const validateInputs = () => {
   let errors = [];
@@ -264,15 +251,16 @@ const handleAddOrUpdate = async (e) => {
   };
   
 
-  const handleKeyDown = (e, index) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const nextIndex = index + 1;
-      if (fieldRefs.current[nextIndex]) {
-        fieldRefs.current[nextIndex].focus();
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      if (nextRef && nextRef.current) {
+        nextRef.current.focus(); // Move focus to the next input field
       }
     }
   };
+  
 
   const handleSizeChange = (e, index, field) => {
     const { value } = e.target;
@@ -350,7 +338,10 @@ const handleAddOrUpdate = async (e) => {
               name="item_name"
               value={itemDetails.item_name}
               onChange={handleChange}
+              inputRef={itemRef}
+              onKeyDown={(e) => handleKeyDown(e, itemcodeRef)}
               margin="normal"
+
             />
 
             <TextField
@@ -359,6 +350,8 @@ const handleAddOrUpdate = async (e) => {
               name="item_code"
               value={itemDetails.item_code}
               onChange={handleChange}
+              inputRef={itemcodeRef}
+              onKeyDown={(e) => handleKeyDown(e, categoryRef)}
               margin="normal"
             />
 
@@ -368,6 +361,8 @@ const handleAddOrUpdate = async (e) => {
                 value={itemDetails.category_item}
                 name="category_item"
                 onChange={handleCategoryChange}
+                inputRef={categoryRef}
+                onKeyDown={(e) => handleKeyDown(e, subcategoryRef)}
               >
                 {Array.isArray(categories) && categories.map((category) => (
                   <MenuItem key={category.id} value={category.category_name}>
@@ -384,6 +379,8 @@ const handleAddOrUpdate = async (e) => {
     onChange={handleChange}
     label="Sub-Category"
     disabled={!itemDetails.category_name}
+    inputRef={subcategoryRef}
+    onKeyDown={(e) => handleKeyDown(e, hsnRef)}
   >
     {Array.isArray(subCategories) && subCategories.map((subCategory) => (
       <MenuItem key={subCategory.id} value={subCategory.name}>
@@ -399,6 +396,8 @@ const handleAddOrUpdate = async (e) => {
               name="hsn_code"
               value={itemDetails.hsn_code}
               onChange={handleChange}
+              inputRef={hsnRef}
+              onKeyDown={(e) => handleKeyDown(e, descriptionRef)}
               margin="normal"
             />
 
@@ -408,6 +407,8 @@ const handleAddOrUpdate = async (e) => {
               name="description"
               value={itemDetails.description}
               onChange={handleChange}
+              inputRef={descriptionRef}
+              onKeyDown={(e) => handleKeyDown(e, sizesRef)}
               margin="normal"
             />
 
@@ -419,6 +420,8 @@ const handleAddOrUpdate = async (e) => {
                   name="size"
                   value={sizeObj.size}
                   onChange={(e) => handleSizeChange(e, index, "size")}
+                  inputRef={sizesRef}
+                  onKeyDown={(e) => handleKeyDown(e, unitpriceRef)}
                   margin="normal"
                 />
                 <TextField
@@ -428,6 +431,8 @@ const handleAddOrUpdate = async (e) => {
                   type="number"
                   value={sizeObj.unit_price}
                   onChange={(e) => handleSizeChange(e, index, "unit_price")}
+                  inputRef={unitpriceRef}
+                  onKeyDown={(e) => handleKeyDown(e, quantityRef)}
                   margin="normal"
                 />
                 <TextField
@@ -437,6 +442,8 @@ const handleAddOrUpdate = async (e) => {
                   type="number"
                   value={sizeObj.stock_quantity}
                   onChange={(e) => handleSizeChange(e, index, "stock_quantity")}
+                  inputRef={quantityRef}
+                  onKeyDown={(e) => handleKeyDown(e, null)} // Last field
                   margin="normal"
                 />
                 <IconButton color="secondary" onClick={() => removeSize(index)}>

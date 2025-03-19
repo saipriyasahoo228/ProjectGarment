@@ -262,12 +262,21 @@ export default function SimplePaper() {
     setDeleteDialogOpen(false);
   };
 
+  // const handleKeyDown = (e, nextRef) => {
+  //   if (e.key === 'Enter' && nextRef.current) {
+  //     e.preventDefault();
+  //     nextRef.current.focus();
+  //   }
+  // };
   const handleKeyDown = (e, nextRef) => {
-    if (e.key === 'Enter' && nextRef.current) {
-      e.preventDefault();
-      nextRef.current.focus();
+    if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
+      if (nextRef?.current) {
+        nextRef.current.focus(); // Move focus to the next field
+      }
     }
   };
+  
 
   const downloadPDF = () => {
     const doc = new jsPDF();

@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,6 +65,7 @@ INSTALLED_APPS = [
     'Garmentmodules',
     'Salesreturn',
     'Salestarget',
+    'sms',
     
 
 ]
@@ -214,3 +220,24 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 
 }
+
+
+
+# Setup For Sending SMS
+SMS_BACKEND = str(os.getenv('SMS_BACKEND'))
+TWILIO_ACCOUNT_SID = str(os.getenv('TWILIO_ACCOUNT_SID'))
+TWILIO_AUTH_TOKEN = str(os.getenv('TWILIO_AUTH_TOKEN'))
+TWILIO_FROM_NUMBER = str(os.getenv('TWILIO_FROM_NUMBER'))
+
+# Setup Cloudinary for pdf storage
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": str(os.getenv("CLOUDINARY_CLOUD_NAME")),
+    "API_KEY": str(os.getenv("CLOUDINARY_API_KEY")),
+    "API_SECRET": str(os.getenv("CLOUDINARY_API_SECRET")),
+}
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
+    api_key=CLOUDINARY_STORAGE["API_KEY"],
+    api_secret=CLOUDINARY_STORAGE["API_SECRET"],
+)

@@ -7,6 +7,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
 import dayjs from 'dayjs';
 import api from "../../api";
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import SmsIcon from '@mui/icons-material/Sms';
+
 
 
 export default function RetailSale() {
@@ -166,36 +169,7 @@ export default function RetailSale() {
   }, [items]);
   
 
-  // useEffect(() => {
-  //   const fetchTotalPrice = async () => {
-  //     try {
-  //       const requestData = {
-  //         grand_total: grandTotal, // Ensure this is correctly set
-  //         discount: formData.discount ? Number(formData.discount) : 0,
-  //         tax: formData.tax ? Number(formData.tax) : 0
-  //       };
-  
-  //       console.log("Sending request data:", requestData); // Debugging
-  
-  //       const response = await api.post('api/retailsale/calculate-total-price/', requestData);
-  
-  //       console.log("API Response:", response.data); // Debugging
-  
-  //       if (response.data && response.data.total_price !== undefined) {
-  //         setFormData((prev) => ({
-  //           ...prev,
-  //           totalPrice: Number(parseFloat(response.data.total_price).toFixed(2))
-  //         }));
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching total price:', error);
-  //     }
-  //   };
-  
-  //   if (grandTotal !== undefined && formData.tax !== undefined && formData.discount !== undefined) {
-  //     fetchTotalPrice();
-  //   }
-  // }, [grandTotal, formData.tax, formData.discount]);
+ 
   
   
 
@@ -243,150 +217,7 @@ export default function RetailSale() {
   
 
 
-// const handleSubmit = async (e) => {
-//   e.preventDefault(); // Prevent default form submission
 
-//   if (previewItems.length === 0) {
-//     alert("No items added! Please add at least one item before submitting.");
-//     return;
-//   }
-
-//   // Ensure all fields are correctly formatted before sending
-//   const payload = {
-//     fullname: formData.fullName.trim(),
-//     phone_number: formData.number.trim(),
-//     address: formData.address.trim(),
-//     tax: parseFloat(formData.tax).toFixed(2), // Ensure tax is formatted to 2 decimal places
-//     tax_type: "SGST", // Assuming static
-//     discount: parseFloat(formData.discount).toFixed(2), // Ensure discount is formatted
-//     payment_method1: formData.paymentMethod1.trim(),
-//     payment_method1_amount: parseFloat(formData.amount1).toFixed(2),
-//     payment_method2: formData.paymentMethod2.trim(),
-//     payment_method2_amount: parseFloat(formData.amount2).toFixed(2),
-//     narration: formData.narration.trim(),
-//     saletype: formData.saletype.trim(),
-//     items: previewItems.map(({ barcode, category, sub_category, size, item_name, unit, unit_price }) => ({
-//       barcode: barcode?.trim() || "", 
-//       category: category?.trim() || "", 
-//       sub_category: sub_category?.trim() || "", 
-//       size: size?.trim() || "", 
-//       item_name: item_name?.trim() || "", 
-//       unit: Number(unit) || 1, // Ensure unit is a number
-//       unit_price: unit_price ? parseFloat(unit_price).toFixed(2) : "0.00", // Format unit_price
-//     })),
-//   };
-
-//   // Debugging: Print JSON payload in the exact format expected
-//   console.log("🚀 Final Payload to be Sent:", JSON.stringify(payload, null, 2));
-
-//   try {
-//     const response = await api.post("api/retailsale/create-order/", payload);
-    
-//     // Debugging: Print API response
-//     console.log("✅ API Response:", JSON.stringify(response.data, null, 2));
-
-//     alert("Form submitted successfully!");
-
-//     // Reset form and state
-//     setFormData({
-//       fullName: "",
-//       number: "",
-//       address: "",
-//       tax: "",
-//       discount: "",
-//       totalPrice: "",
-//       paymentMethod1: "Cash",
-//       paymentMethod2: "UPI",
-//       amount1: "",
-//       amount2: "",
-//       saletype: "RetailSale",
-//       narration: "",
-//     });
-
-//     setPreviewItems([]); // Clear items
-//     setItems([{ 
-//       barcode: "", 
-//       category: "", 
-//       sub_category: "", 
-//       size: "", 
-//       item_name: "", 
-//       unit: "1", 
-//       unit_price: "0.00" 
-//     }]); // Reset item state
-//   } catch (error) {
-//     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
-//     alert(`Submission failed: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-//   }
-// };
-
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   if (previewItems.length === 0) {
-//     alert("No items added! Please add at least one item before submitting.");
-//     return;
-//   }
-
-//   const payload = {
-//     fullname: formData.fullName.trim(),
-//     phone_number: formData.number.trim(),
-//     address: formData.address.trim(),
-//     tax: parseFloat(formData.tax).toFixed(2),
-//     tax_type: "SGST",
-//     //discount: parseFloat(formData.discount).toFixed(2) ,
-//     discount: formData.discount ? parseFloat(formData.discount).toFixed(2) : null,
-//     payment_method1: formData.paymentMethod1.trim(),
-//     payment_method1_amount: parseFloat(formData.amount1).toFixed(2),
-//     payment_method2: formData.paymentMethod2.trim(),
-//     payment_method2_amount: parseFloat(formData.amount2).toFixed(2),
-//     narration: formData.narration.trim(),
-//     saletype: formData.saletype.trim(),
-//     items: previewItems.map(({ barcode, category, sub_category, size, item_name, unit, unit_price }) => ({
-//       barcode: barcode?.trim() || "",
-//       category: category?.trim() || "",
-//       sub_category: sub_category?.trim() || "",
-//       size: size?.trim() || "",
-//       item_name: item_name?.trim() || "",
-//       unit: Number(unit) || 1,
-//       unit_price: unit_price ? parseFloat(unit_price).toFixed(2) : "0.00",
-//     })),
-//   };
-
-//   try {
-//     const response = await api.post("api/retailsale/create-order/", payload);
-    
-//     // ✅ Extract bill number from response
-//     const billNumberFromResponse = response.data?.bill_number || null;
-//     setBillNumber(billNumberFromResponse); // Store bill number in state
-
-//     console.log("✅ API Response:", JSON.stringify(response.data, null, 2));
-
-//     alert(`Form submitted successfully! Bill Number: ${billNumberFromResponse}`);
-
-//     // Reset form and state
-//     setFormData({
-//       fullName: "",
-//       number: "",
-//       address: "",
-//       tax: "",
-//       discount: "",
-//       totalPrice: "",
-//       paymentMethod1: "Cash",
-//       paymentMethod2: "UPI",
-//       amount1: "",
-//       amount2: "",
-//       saletype: "RetailSale",
-//       narration: "",
-//     });
-
-//     setPreviewItems([]);
-//     setItems([{ barcode: "", category: "", sub_category: "", size: "", item_name: "", unit: "1", unit_price: "0.00" }]);
-
-//   } catch (error) {
-//     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
-//     alert(`Submission failed: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-//   }
-// };
 const validatePayload = (formData, previewItems) => {
   let errors = [];
 
@@ -436,10 +267,88 @@ const validatePayload = (formData, previewItems) => {
   return true;
 };
 
-const handleSubmit = async (e) => {
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
+
+//   if (!validatePayload(formData, previewItems)) return; // Stop if validation fails
+
+//   const payload = {
+//     fullname: formData.fullName.trim(),
+//     phone_number: formData.number.trim(),
+//     address: formData.address.trim(),
+//     tax: parseFloat(formData.tax).toFixed(2),
+//     tax_type: "SGST",
+//     discount: formData.discount ? parseFloat(formData.discount).toFixed(2) : null,
+//     payment_method1: formData.paymentMethod1.trim(),
+//     payment_method1_amount: parseFloat(formData.amount1).toFixed(2),
+//     payment_method2: formData.paymentMethod2.trim(),
+//     payment_method2_amount: parseFloat(formData.amount2).toFixed(2),
+//     narration: formData.narration.trim(),
+//     saletype: formData.saletype.trim(),
+//     items: previewItems.map(({ barcode, category, sub_category, size, item_name, unit, unit_price }) => ({
+//       barcode: barcode?.trim() || "",
+//       category: category?.trim() || "",
+//       sub_category: sub_category?.trim() || "",
+//       size: size?.trim() || "",
+//       item_name: item_name?.trim() || "",
+//       unit: Number(unit) || 1,
+//       unit_price: unit_price ? parseFloat(unit_price).toFixed(2) : "0.00",
+//     })),
+//     msg_via: msgVia,
+//   };
+
+//   try {
+//     const response = await api.post("api/retailsale/create-order/", payload);
+    
+//     // ✅ Extract bill number from response
+//     const billNumberFromResponse = response.data?.bill_number || null;
+//     setBillNumber(billNumberFromResponse); // Store bill number in state
+
+//     alert(`✅ Form submitted successfully! Bill Number: ${billNumberFromResponse}`);
+
+//     // Reset form and state
+//     setFormData({
+//       fullName: "",
+//       number: "",
+//       address: "",
+//       tax: "",
+//       discount: "",
+//       totalPrice: "",
+//       paymentMethod1: "Cash",
+//       paymentMethod2: "UPI",
+//       amount1: "",
+//       amount2: "",
+//       saletype: "RetailSale",
+//       narration: "",
+//     });
+
+//     setPreviewItems([]);
+//     setItems([{ barcode: "", category: "", sub_category: "", size: "", item_name: "", unit: "1", unit_price: "0.00" }]);
+
+//   } catch (error) {
+//     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    
+//     // Show backend errors in an alert
+//     if (error.response && error.response.data) {
+//       const backendErrors = Object.values(error.response.data).flat();
+//       alert(`❌ Submission failed:\n${backendErrors.join("\n")}`);
+//     } else {
+//       alert(`❌ Submission failed: ${error.message}`);
+//     }
+//   }
+// };
+
+
+const handleSubmit = async (e, msgVia) => {
   e.preventDefault();
 
   if (!validatePayload(formData, previewItems)) return; // Stop if validation fails
+
+  if (!msgVia) {
+    console.error("❌ msgVia is not defined");
+    alert("Please select WhatsApp or SMS before submitting.");
+    return;
+  }
 
   const payload = {
     fullname: formData.fullName.trim(),
@@ -463,12 +372,12 @@ const handleSubmit = async (e) => {
       unit: Number(unit) || 1,
       unit_price: unit_price ? parseFloat(unit_price).toFixed(2) : "0.00",
     })),
+    msg_via: msgVia, // ✅ Now correctly passing msg_via
   };
 
   try {
     const response = await api.post("api/retailsale/create-order/", payload);
     
-    // ✅ Extract bill number from response
     const billNumberFromResponse = response.data?.bill_number || null;
     setBillNumber(billNumberFromResponse); // Store bill number in state
 
@@ -496,7 +405,6 @@ const handleSubmit = async (e) => {
   } catch (error) {
     console.error("❌ Submission Error:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     
-    // Show backend errors in an alert
     if (error.response && error.response.data) {
       const backendErrors = Object.values(error.response.data).flat();
       alert(`❌ Submission failed:\n${backendErrors.join("\n")}`);
@@ -505,6 +413,7 @@ const handleSubmit = async (e) => {
     }
   }
 };
+
 
 
   const handleSendNotification = () => {
@@ -878,13 +787,22 @@ useEffect(() => {
 
         {/* Notification and Print options */}
         <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
-          <IconButton onClick={handleSendNotification} sx={{ color: '#370140' }}>
-            <SendIcon />
-          </IconButton>
-          <IconButton onClick={handlePrint} sx={{ color: '#370140' }}>
-            <PrintIcon />
-          </IconButton>
-        </Box>
+  {/* WhatsApp Button */}
+  <IconButton onClick={(e) => handleSubmit(e, 'whatsapp')} sx={{ color: '#25D366' }}>
+    <WhatsAppIcon />
+  </IconButton>
+
+  {/* SMS Button */}
+  <IconButton onClick={(e) => handleSubmit(e, 'sms')} sx={{ color: '#370140' }}>
+    <SmsIcon />
+  </IconButton>
+
+  {/* Print Button */}
+  <IconButton onClick={handlePrint} sx={{ color: '#370140' }}>
+    <PrintIcon />
+  </IconButton>
+</Box>
+
         
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>

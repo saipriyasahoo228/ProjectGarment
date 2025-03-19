@@ -26,9 +26,12 @@ class BarcodeGen(models.Model):
     def __str__(self):
         return f"{self.item_name} - {self.serial_number}"
     
-    # def save(self, *args, **kwargs):
-    #     # Custom validation before saving
-    #     if len(self.shop_name) > 25:
-    #         raise ValueError("shop_name cannot exceed 25 characters.")
-        
-    #     super().save(*args, **kwargs)
+class BarcodeVerify(models.Model):
+    item_name = models.CharField(max_length=100)
+    category_name = models.CharField(max_length=100)
+    sub_category = models.CharField(max_length=100,default='na',blank=True, null=True)
+    item_size = models.CharField(max_length=10)
+    quantity = models.IntegerField(default=0)
+    date_verified = models.DateTimeField(auto_now_add=True)
+    barcodes = models.ManyToManyField(BarcodeGen)
+   

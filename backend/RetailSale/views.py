@@ -1,38 +1,42 @@
-from datetime import datetime  # Import this at the top of the file
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import OrderSerializer,ItemPreviewSerializer
-from rest_framework.permissions import IsAuthenticated
-from .renderers import UserRenderer  # Assuming this exists for custom rendering
-from .models import Order,ItemPreview,PreviewGrandTotal,StockDeduction
-from Purchasedetails.models import PurchaseEntry
-from decimal import Decimal
-from django.db.models import F,Sum
-from django.utils import timezone
-from django.db import transaction
-from GarmentShopAPI.models import Item, ItemSize,StockHistory  # Import Item and ItemSize models
-from RetailSale.models import Order
-from django.utils.dateparse import parse_date  # Import parse_date
-from django.db.models.functions import TruncDate
-import json
-from calendar import month_name
-from django.db.models.functions import TruncDate, TruncMonth, TruncYear
-import datetime
-from datetime import date
-from datetime import datetime, timedelta, date
+# from datetime import datetime  # Import this at the top of the file
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from .serializers import OrderSerializer,ItemPreviewSerializer
+# from rest_framework.permissions import IsAuthenticated
+# from .renderers import UserRenderer  # Assuming this exists for custom rendering
+# from .models import Order,ItemPreview,PreviewGrandTotal,StockDeduction
+# from Purchasedetails.models import PurchaseEntry
+# from decimal import Decimal
+# from django.db.models import F,Sum
+# from django.utils import timezone
+# from django.db import transaction
+# from GarmentShopAPI.models import Item, ItemSize,StockHistory  # Import Item and ItemSize models
+# from RetailSale.models import Order
+# from django.utils.dateparse import parse_date  # Import parse_date
+# from django.db.models.functions import TruncDate
+# import json
+# from calendar import month_name
+# from django.db.models.functions import TruncDate, TruncMonth, TruncYear
+# import datetime
+# from datetime import date
+# from datetime import datetime, timedelta, date
 
 
 
 
+
+
+
+# # To create order
 
 # class CreateOrderView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     renderer_classes = [UserRenderer]
+#     permission_classes = [IsAuthenticated]  # Adjust according to your authentication setup
 
 #     def post(self, request):
 #         """
 #         Create a new order and deduct stock quantities by matching item_name, category, sub_category, and size.
+#         This will also store the stock deduction before modifying the stock.
 #         """
 #         with transaction.atomic():  # Ensure all operations are atomic
 #             serializer = OrderSerializer(data=request.data)
@@ -45,15 +49,22 @@ from datetime import datetime, timedelta, date
 #                         # Fetch the related Item and ItemSize based on provided fields
 #                         item = Item.objects.get(
 #                             item_name=item_data['item_name'],
-#                             category_item=item_data['category'],
-#                             sub_category=item_data.get('sub_category')  # Handle optional sub_category
+#                             category_name=item_data['category'],
+#                             sub_category=item_data.get('sub_category', '')  # Handle optional sub_category
 #                         )
 #                         item_size = item.sizes.get(size=item_data['size'])  # Access related size
+
+#                         # Save the stock deduction before modifying the stock
+#                         StockDeduction.objects.create(
+#                             item_size=item_size,
+#                             change_quantity=item_data['unit'],  # Deduct the quantity based on the order
+#                             change_date=timezone.now()  # Record the current date and time
+#                         )
 
 #                         # Check if stock is sufficient
 #                         if item_size.stock_quantity >= item_data['unit']:
 #                             # Deduct the stock from ItemSize
-#                             item_size.stock_quantity = F('stock_quantity') - item_data['unit']
+#                             item_size.stock_quantity -= item_data['unit']
 #                             item_size.save()
 #                         else:
 #                             return Response(
@@ -69,7 +80,7 @@ from datetime import datetime, timedelta, date
 #                             status=status.HTTP_400_BAD_REQUEST
 #                         )
 
-#                 # Calculate and save totals
+#                 # Calculate and save totals for the order
 #                 order.total_price = order.calculate_total_price()
 #                 order.grand_total = order.calculate_grand_total()
 #                 order.save()
@@ -86,21 +97,51 @@ from datetime import datetime, timedelta, date
 #                 )
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+from datetime import datetime  
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import OrderSerializer,ItemPreviewSerializer
+from rest_framework.permissions import IsAuthenticated
+from .renderers import UserRenderer  # Assuming this exists for custom rendering
+from .models import Order,ItemPreview,PreviewGrandTotal,StockDeduction
+from decimal import Decimal, InvalidOperation
+from django.db.models import F,Sum
+from django.utils import timezone
+from django.db import transaction
+from GarmentShopAPI.models import Item, ItemSize,StockHistory 
+from RetailSale.models import Order
+from django.utils.dateparse import parse_date  # Import parse_date
+from django.db.models.functions import TruncDate
+import json
+from calendar import month_name
+from django.db.models.functions import TruncDate, TruncMonth, TruncYear
+import datetime
+from datetime import date
+from datetime import datetime, timedelta, date
+from sms import send_sms
+from .utils import send_ultramsg_whatsapp,send_twilio_whatsapp
+import cloudinary
+
+
 # To create order
 
 class CreateOrderView(APIView):
-    permission_classes = [IsAuthenticated]  # Adjust according to your authentication setup
+    # permission_classes = [IsAuthenticated]  # Adjust according to your authentication setup
 
     def post(self, request):
         """
         Create a new order and deduct stock quantities by matching item_name, category, sub_category, and size.
         This will also store the stock deduction before modifying the stock.
         """
+        items_list = request.data.get('items',[])
+        for item in items_list:
+            if item['unit']<=0:
+                return Response({"message":"Items unit should be greater than zero."},status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():  # Ensure all operations are atomic
             serializer = OrderSerializer(data=request.data)
             if serializer.is_valid():
-                order = serializer.save()  # Save the order
-
                 # Deduct stock for each item in the order
                 for item_data in request.data.get('items', []):
                     try:
@@ -111,24 +152,12 @@ class CreateOrderView(APIView):
                             sub_category=item_data.get('sub_category', '')  # Handle optional sub_category
                         )
                         item_size = item.sizes.get(size=item_data['size'])  # Access related size
-
-                        # Save the stock deduction before modifying the stock
-                        StockDeduction.objects.create(
-                            item_size=item_size,
-                            change_quantity=item_data['unit'],  # Deduct the quantity based on the order
-                            change_date=timezone.now()  # Record the current date and time
+                        if item_size.stock_quantity < item_data['unit']:
+                            return Response(
+                            {"error": f"Insufficient stock for {item.item_name} (Size: {item_data['size']})."},
+                            status=status.HTTP_400_BAD_REQUEST
                         )
 
-                        # Check if stock is sufficient
-                        if item_size.stock_quantity >= item_data['unit']:
-                            # Deduct the stock from ItemSize
-                            item_size.stock_quantity -= item_data['unit']
-                            item_size.save()
-                        else:
-                            return Response(
-                                {"error": f"Insufficient stock for {item.item_name} (Size: {item_data['size']})."},
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
                     except (Item.DoesNotExist, ItemSize.DoesNotExist):
                         return Response(
                             {
@@ -137,14 +166,67 @@ class CreateOrderView(APIView):
                             },
                             status=status.HTTP_400_BAD_REQUEST
                         )
+                order = serializer.save()
+                
+                # Deduct stock for each item in the order
+                for item_data in items_list:
+                    item = Item.objects.get(
+                    item_name=item_data['item_name'],
+                    category_name=item_data['category'],
+                    sub_category=item_data.get('sub_category', '')  
+                    )
+                    item_size = item.sizes.get(size=item_data['size'])  
 
-                # Calculate and save totals for the order
+                # Save stock deduction before modifying stock
+                    StockDeduction.objects.create(
+                        item_size=item_size,
+                        change_quantity=item_data['unit'],  
+                        change_date=timezone.now()  
+                    )
+
+                # Deduct stock from ItemSize
+                    item_size.stock_quantity -= item_data['unit']
+                    item_size.save()
+
+            # Calculate and save totals for the order
                 order.total_price = order.calculate_total_price()
                 order.grand_total = order.calculate_grand_total()
                 order.save()
 
+                msg_via=request.data['msg_via']
+
                 # Return response with updated data
                 updated_serializer = OrderSerializer(order)
+                customer_phone_number = order.phone_number
+
+                try:
+                    if msg_via=="sms":
+                        send_sms(
+                            f'Hi {order.fullname}, Thank You For Shopping!\nHere is your invoice https://res.cloudinary.com/dumxbi1vh/raw/upload/v1739784789/tcvdmu1mdwczqxaykum0.pdf',
+                            '+18106694970',
+                            [f'+91{customer_phone_number}'],
+                            fail_silently=False
+                            )
+                    elif msg_via=="whatsapp":
+                        # pdf_file = "test.pdf"
+                        # result = cloudinary.uploader.upload(pdf_file, resource_type="raw",public_id=f"invoices/{pdf_file})
+                        # print("pdf_url: ",result["secure_url"])
+   
+                        message = f"Hi {order.fullname},\nThank You For Shopping With Us.\nHere is your invoice."
+                        # send_ultramsg_whatsapp(customer_phone_number,message)
+                        send_twilio_whatsapp(customer_phone_number,message,order.fullname)
+                    else:
+                        print("Message Not Sent To The Customer.")
+                except Exception as e:
+                    return Response(
+                        {
+                            "message": "Order created successfully, but Message sending failed.",
+                            "error": str(e),
+                            "bill_number": order.bill_number,
+                            "data": updated_serializer.data
+                        },
+                        status=status.HTTP_201_CREATED
+                        )
                 return Response(
                     {
                         "message": "Order created successfully!",
@@ -153,6 +235,7 @@ class CreateOrderView(APIView):
                     },
                     status=status.HTTP_201_CREATED
                 )
+                
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #To get all order details
 class GetOrderDetailsView(APIView):
